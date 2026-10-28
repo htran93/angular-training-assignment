@@ -17,27 +17,29 @@
 - The seven default jars and percentages are fixed exactly as listed in AC5.
 - The system may expose the flow through a UI, API, or both. UI cases validate user-visible behavior; API cases validate backend source-of-truth behavior.
 - **Implementation risk:** the current API request model accepts caller-supplied allocations, while F1 requires the system to create the seven predefined jars. The cases require the observable F1 outcome and should fail if callers can create arbitrary jar sets through the F1 path.
-- The open questions in the requirement about default month, duplicate-plan navigation, and income formatting are not asserted.
+- The current month is preselected but remains editable. Income is kept as ASCII digits in the form/API value and displayed with period group separators; commas and other invalid characters remain rejected.
+- Duplicate-plan navigation behavior remains open; tests assert the documented conflict message and that no second plan is created.
 - Authentication and authorization are out of scope because the story explicitly excludes authentication.
 
 ## Reusable Test Data
 
 | Data ID | Value | Use |
 | --- | --- | --- |
-| D01 | Year `2026`, month `9` (September), income `25,000,000 VND` | Standard valid plan |
+| D01 | Year `2026`, month `9` (September), income `25,000,000 VND` (entered as `25.000.000` in the UI) | Standard valid plan |
 | D02 | Year `2026`, month `10` (October), income `1 VND` | Positive lower boundary |
-| D03 | Raw income inputs: empty, `0`, `-1`, `abc` | Verify digit-only filtering and validation of the resulting empty or zero values |
+| D03 | Invalid income inputs: empty, `0`, `-1`, `abc`, `25,000,000` | Verify invalid values, including comma grouping, remain invalid and are not submitted |
 | D04 | Existing plan for year `2026`, month `9` | Duplicate-plan validation |
 | D05 | Default jars: Living Expenses 35%, Food 20%, Children 10%, Emergency Fund 10%, Savings 10%, Investment 10%, Entertainment & Travel 5% | Fixed business rule validation |
+| D06 | Income `1000` displayed as `1.000` | Verify display grouping does not change the submitted digit string |
 
 ## Test Cases
 
 | Test Case ID | Title | Test Steps | Expected Result | Requirement | Testing Technique | Priority | Preconditions | Test Data | Automation |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TC_F1_001 | Verify the monthly planning form exposes month, income, and create controls | 1. Open the monthly planning screen.<br>2. Inspect the available form controls. | A year/month selector is available; a required monthly-income input is available and identifies VND; a create-plan action is available. | AC1 | Use Case Testing, Accessibility smoke | High | Application is available and the user can access the monthly planning screen. | D01 | Yes |
-| TC_F1_002 | Verify a valid income creates one monthly plan and opens the jar dashboard | 1. Select September 2026.<br>2. Enter `25,000,000` in the income field.<br>3. Submit the form.<br>4. Inspect the resulting screen and persisted plan. | The submission succeeds; exactly one plan exists for 2026-09 with income 25,000,000 VND; the user is shown the current month's jar dashboard. | AC2 | Use Case Testing, State Transition Testing | Critical | No plan exists for 2026-09; all required services are running. | D01 | Yes |
+| TC_F1_001 | Verify the monthly planning form exposes month, income, and create controls | 1. Open the monthly planning screen.<br>2. Inspect the available form controls. | A year/month selector defaults to the current month and remains editable; a required monthly-income input is available, identifies VND, and accepts digits only; a create-plan action is available. | AC1 | Use Case Testing, Accessibility smoke | High | Application is available and the user can access the monthly planning screen. | D01 | Yes |
+| TC_F1_002 | Verify a valid income creates one monthly plan and opens the jar dashboard | 1. Select September 2026.<br>2. Enter `25.000.000` in the income field.<br>3. Submit the form.<br>4. Inspect the resulting screen and persisted plan. | The submission succeeds; exactly one plan exists for 2026-09 with income 25,000,000 VND; the user is shown the current month's jar dashboard. | AC2 | Use Case Testing, State Transition Testing | Critical | No plan exists for 2026-09; all required services are running. | D01 | Yes |
 | TC_F1_003 | Verify the positive-income lower boundary is accepted | 1. Select a month with no existing plan.<br>2. Enter `1` VND.<br>3. Submit the form. | The plan is created successfully because income is greater than zero; the created plan retains income `1 VND`; no validation error is shown. | AC2, AC3 | Boundary Value Analysis | High | The selected month has no plan. | D02 | Yes |
-| TC_F1_004 | Verify income input filters non-digits and rejects empty or zero values | 1. Enter each raw value in D03 into the income field.<br>2. Verify that `abc` becomes empty and `-1` becomes `1` because only digits are retained.<br>3. Submit the empty, zero, and filtered-to-empty values.<br>4. Inspect the field value, validation message, and whether a create request was sent. | The field retains digits only (`-1` becomes `1`; `abc` becomes empty). Empty and zero values show a positive-income validation message and do not send a create request. The normalized `1` value is not submitted as an invalid amount. | AC3 | Equivalence Partitioning, Negative Testing | Critical | Default jars are loaded; an isolated UI test environment is available. | D03 | Yes |
+| TC_F1_004 | Verify income input rejects empty, zero, signed, comma-grouped, and non-digit values | 1. Enter each invalid value in D03 into the income field.<br>2. Submit each value and inspect the field message and whether a create request was sent. | Empty and zero show a positive-income validation message; `-1`, `abc`, and `25,000,000` remain invalid and are not submitted. No invalid value sends a create request. | AC3 | Equivalence Partitioning, Negative Testing | Critical | Default jars are loaded; an isolated UI test environment is available. | D03 | Yes |
 | TC_F1_005 | Verify duplicate submission for the same year and month is prevented | 1. Ensure a plan already exists for September 2026.<br>2. Select September 2026 and enter a positive income.<br>3. Submit the form.<br>4. Count plans for 2026-09 and inspect the user message. | The second submission is rejected with a duplicate-plan message; the count remains one; the original plan and income are unchanged. | AC4 | Decision Table Testing, State Transition Testing | Critical | D04 exists and is valid. | D01, D04 | Yes |
 | TC_F1_006 | Verify a newly created plan contains exactly the seven predefined jars | 1. Create a plan for a previously unused month with valid income.<br>2. Retrieve the created plan from the dashboard or API.<br>3. Count the jars and compare names with D05. | The plan contains exactly seven jars: Living Expenses, Food, Children, Emergency Fund, Savings, Investment, and Entertainment & Travel. No jar is missing, duplicated, added, or renamed. | AC2, AC5 | Equivalence Partitioning, Business Rule Testing | Critical | The selected month has no plan. | D01, D05 | Yes |
 | TC_F1_007 | Verify predefined jar percentages total exactly 100 percent | 1. Create a valid monthly plan.<br>2. Read every jar percentage from the dashboard or API.<br>3. Sum the percentages without rounding the displayed values. | The seven percentages are 35%, 20%, 10%, 10%, 10%, 10%, and 5%; their exact total is 100%; the dashboard indicates full allocation if such an indicator is shown. | AC2, AC5 | Decision Table Testing, Arithmetic Invariant Testing | Critical | The selected month has no plan. | D01, D05 | Yes |
@@ -46,17 +48,18 @@
 | TC_F1_010 | Verify the API rejects allocation percentages whose total is not 100 percent | 1. Send a valid-year, valid-month, positive-income create request with allocation percentages totaling 99% or 101%.<br>2. Inspect the response and database. | The API rejects the request with a total-allocation validation error; no plan or allocations are persisted. | AC2, AC5, NFR financial integrity | Boundary Value Analysis, Negative Testing | High | The selected month has no plan; request validation endpoint is available. | Income 25,000,000; totals 99% and 101% | Yes |
 | TC_F1_011 | Verify invalid year and month values are rejected without persistence | 1. Submit a positive-income request with year below the supported minimum and above the supported maximum.<br>2. Submit requests with month `0` and `13`.<br>3. Inspect responses and database state. | Each invalid request is rejected with a year/month validation message; no monthly plan is created. | AC1, Main Workflow step 5 | Boundary Value Analysis, API Negative Testing | Medium | The API validation contract is in force and each test uses an unused year/month combination. | Years `1999`, `2101`; months `0`, `13`; positive income | Yes |
 | TC_F1_012 | Verify the created plan remains available after navigating away and returning | 1. Create a valid plan.<br>2. Navigate away from the monthly dashboard.<br>3. Return to the selected month's plan/dashboard.<br>4. Refresh the page or re-fetch the plan. | The same plan, income, seven jars, and percentages are shown after retrieval; no duplicate plan is created by navigation or refresh. | AC2, AC4 | State Transition Testing, Persistence Testing | High | A valid plan has been created for the selected month. | D01, D05 | Yes |
+| TC_F1_013 | Verify income grouping preserves the canonical submitted value | 1. Open the planning form and enter `1000`.<br>2. Inspect the displayed value.<br>3. Submit the form and inspect the create request and saved plan. | The input displays `1.000`; the form/API sends the digit string `1000`; the saved income is 1000 VND. | AC1, AC2 | Use Case Testing, Integration Testing | High | Defaults are loaded; the selected month has no plan; API is available. | D06 | Yes |
 
 ## Coverage Matrix
 
 | Acceptance Criterion | Complexity | Covered By |
 | --- | --- | --- |
-| AC1: Display the monthly planning form | Simple | TC_F1_001, TC_F1_011 |
-| AC2: Create a monthly plan with valid income | Complex | TC_F1_002, TC_F1_003, TC_F1_006, TC_F1_007, TC_F1_009, TC_F1_012 |
+| AC1: Display the monthly planning form | Simple | TC_F1_001, TC_F1_011, TC_F1_013 |
+| AC2: Create a monthly plan with valid income | Complex | TC_F1_002, TC_F1_003, TC_F1_006, TC_F1_007, TC_F1_009, TC_F1_012, TC_F1_013 |
 | AC3: Reject missing or non-positive income | Medium | TC_F1_003, TC_F1_004 |
 | AC4: Prevent duplicate monthly plans | Medium | TC_F1_005, TC_F1_012 |
 | AC5: Use the predefined default jars | Complex | TC_F1_006, TC_F1_007, TC_F1_008, TC_F1_009, TC_F1_010 |
-| NFR: Use VND and preserve backend financial integrity | Complex | TC_F1_002, TC_F1_003, TC_F1_009, TC_F1_010 |
+| NFR: Use VND and preserve backend financial integrity | Complex | TC_F1_002, TC_F1_003, TC_F1_009, TC_F1_010, TC_F1_013 |
 
 ## Non-Functional Coverage Notes
 
@@ -66,7 +69,7 @@
 | Security | Authentication and authorization are explicitly out of scope. Input validation is covered through TC_F1_004, TC_F1_008, and TC_F1_010; injection-specific testing belongs to the broader API security suite. |
 | Performance | Not applicable to the stated acceptance criteria; no response-time target or load profile is defined. |
 | Compatibility | Not specified; browser/device matrix is deferred until the frontend implementation and support matrix are approved. |
-| Localization | VND is required, but locale formatting and thousand-separator behavior are open questions, so exact formatting is not asserted. |
+| Localization | The F1 input groups thousands with periods; the API/form model remains an ungrouped digit string. Other locale-specific formatting is not asserted. |
 | Integration | Backend persistence and API response integrity are covered by TC_F1_002, TC_F1_009, TC_F1_010, and TC_F1_012. |
 
 ## Quality Gate

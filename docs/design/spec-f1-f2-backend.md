@@ -11,7 +11,7 @@ F1 owns creation. F2 is read-only and consumes the same monthly-plan response cr
 
 Out of scope: editing plans or rates, expenses, spent/remaining values, progress, authentication, and dashboard aggregation.
 
-**Status:** Draft. Contract freeze requires approval of the whole-VND rounding/remainder policy and the source requirements.
+**Status:** Draft. The whole-VND rounding/remainder policy was approved on 2026-10-28; the feature requirements and remaining open questions still require product review.
 
 ## 2. Source Alignment and Shared Decisions
 
@@ -48,7 +48,7 @@ The visual reference [month-budget-summary.html](../requirements/f2-income-alloc
 | BR-005 / BR-006 | Backend calculates every budget as income x percentage / 100. | Never trust client-calculated amounts. |
 | F1-AC4 | One plan exists per year/month. | Application check plus unique database index. |
 | F2-AC1 / F2-AC4 | Existing plans return seven names, rates, and backend budgets. | Validate before mapping the response. |
-| BR-007 / BR-009 | Budget amounts are whole VND and sum exactly to income. | Apply the approved deterministic policy and verify before save/read. |
+| BR-007 / BR-009 | Budget amounts are whole VND and sum exactly to income. | Apply the approved largest-remainder policy and verify before save/read. |
 | F2-AC3 | Missing plans do not produce fabricated amounts. | Return `404 MONTHLY_PLAN_NOT_FOUND`. |
 
 ## 4. Domain Model
@@ -223,7 +223,7 @@ The approved policy must use whole-VND amounts and make the total equal income e
 3. Distribute leftover VND units by descending remainder; ties use canonical jar order.
 4. Verify seven non-negative budgets and `SUM(budgets) == monthlyIncomeVnd` before persistence and response.
 
-This policy is shared by F1 creation and F2 read logic if budgets are not persisted. It remains **NOT FROZEN** until approved.
+This approved policy is shared by F1 creation and F2 read logic if budgets are not persisted. Distribute whole-VND remainder units by descending fractional remainder; ties follow canonical jar order.
 
 ## 10. Persistence and Query Flow
 

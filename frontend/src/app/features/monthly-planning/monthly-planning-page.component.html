@@ -1,0 +1,112 @@
+<app-app-shell>
+  <div class="f1-page">
+    <nav class="f1-breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/dashboard">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Monthly planning</span>
+    </nav>
+
+    <header class="f1-page__intro">
+      <span class="f1-page__intro-mark" aria-hidden="true">₫</span>
+      <div>
+        <h1>Create your monthly budget</h1>
+        <p>Set your income for a month and we will prepare your seven budgeting jars.</p>
+      </div>
+    </header>
+
+    @if (defaultsState() === 'loading') {
+      <app-state-panel
+        variant="loading"
+        title="Loading your allocation"
+        message="Preparing the seven default jars." />
+    } @else if (defaultsState() === 'error') {
+      <app-state-panel
+        variant="error"
+        title="Default allocation unavailable"
+        message="We could not load the default jars. Try again before creating a plan.">
+        <button state-action class="ff-button ff-button--secondary" type="button" (click)="loadDefaults()">
+          Try again
+        </button>
+      </app-state-panel>
+    } @else if (defaultJars(); as defaults) {
+      <div class="f1-page__content">
+        <app-panel title="Plan details">
+          <form class="f1-plan-form" [formGroup]="form" novalidate (ngSubmit)="submit()">
+            <app-form-field
+              #monthField
+              controlId="plan-month"
+              label="Month"
+              [required]="true"
+              helpText="Select the month for this plan."
+              [errorMessage]="monthErrorMessage">
+              <input
+                #monthInput
+                class="ff-input"
+                id="plan-month"
+                type="month"
+                required
+                formControlName="planMonth"
+                [attr.aria-invalid]="monthErrorMessage ? 'true' : null"
+                [attr.aria-describedby]="monthField.describedBy" />
+            </app-form-field>
+
+            <app-form-field
+              #incomeField
+              controlId="monthly-income"
+              label="Monthly income"
+              [required]="true"
+              helpText="Enter a positive whole-VND amount using digits only; periods are added automatically."
+              [errorMessage]="incomeErrorMessage">
+              <app-vnd-amount-input
+                inputId="monthly-income"
+                placeholder="30.000.000"
+                [groupThousands]="true"
+                formControlName="monthlyIncomeVnd"
+                [required]="true"
+                [invalid]="!!incomeErrorMessage"
+                [describedBy]="incomeField.describedBy" />
+            </app-form-field>
+
+            @if (submitError()) {
+              <div class="f1-submit-error" role="alert">
+                <p>{{ submitError() }}</p>
+                @if (planRoute(); as route) {
+                  <a class="ff-button ff-button--secondary" [routerLink]="route">Check this month</a>
+                }
+              </div>
+            }
+
+            <button
+              class="ff-button ff-button--primary f1-plan-form__submit"
+              type="submit"
+              [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Creating plan…' : 'Create monthly plan' }}
+            </button>
+
+            <p class="f1-plan-form__note">One plan can be created per month.</p>
+          </form>
+        </app-panel>
+
+        <app-panel title="Your default allocation">
+          <div class="f1-allocation-heading">
+            <p>These rates are fixed for your first monthly plan.</p>
+            <span class="f1-allocation-heading__total">
+              <span aria-hidden="true">✓</span> {{ defaults.totalPercentage }}% allocated
+            </span>
+          </div>
+
+          <ul class="f1-jar-grid" aria-label="Default jar allocation">
+            @for (jar of defaults.jars; track jar.jarType) {
+              <li>
+                <app-jar-card
+                  [jarType]="jar.jarType"
+                  [name]="jar.name"
+                  [percentage]="jar.percentage" />
+              </li>
+            }
+          </ul>
+        </app-panel>
+      </div>
+    }
+  </div>
+</app-app-shell>

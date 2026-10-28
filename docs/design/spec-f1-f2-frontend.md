@@ -9,7 +9,7 @@ This document is the shared Angular contract for:
 
 F1 owns the form and create action. F2 is read-only. Both use the same typed plan response from `GET /api/v1/budget-plans/{year}/{month}`. Editing rates, expenses, spent/remaining values, progress, and dashboard aggregation are out of scope.
 
-**Source status:** F1 and F2 requirements are Draft/Proposed. The API and calculation contract are not frozen until the rounding/remainder policy is approved.
+**Source status:** F1 and F2 requirements are Draft/Proposed. The largest-remainder policy was approved on 2026-10-28; other unresolved requirement questions remain subject to product review.
 
 ## 2. Shared API Contract
 
@@ -23,7 +23,7 @@ The authoritative backend contract is [spec-f1-f2-backend.md](spec-f1-f2-backend
 
 There is no separate F2 `/allocation` endpoint. F2 consumes the same `MonthlyPlanResponse` returned when F1 reads a plan. The frontend never submits jar types, rates, or calculated budgets.
 
-Money fields are digit-only strings representing whole VND. Keep them as strings and never convert them to JavaScript `number` values for financial calculations.
+Money fields in the API and form model are digit-only strings representing whole VND. Keep them as strings and never convert them to JavaScript `number` values for financial calculations. The F1 income control may display period group separators, but it submits the ungrouped digit string.
 
 ## 3. Business Rules
 
@@ -32,6 +32,7 @@ Money fields are digit-only strings representing whole VND. Keep them as strings
 | F1-AC1 / BR-001 | Require a selected year/month and positive income. |
 | F1-AC2 / F1-AC5 / BR-002 | Display exactly seven backend-provided, read-only jar defaults. |
 | BR-004 | Display the fixed rates and total 100%; do not calculate or edit rates. |
+| F1-AC3 | Keep the income model as positive ASCII digits; display period group separators without changing the model, and reject commas and other invalid characters. |
 | BR-005 through BR-007 | Render only backend-provided budgets; do not calculate authoritative amounts in Angular. |
 | F1-AC4 / BR-008 | Preserve input and show the API conflict on duplicate period. |
 | F2-AC1 / F2-AC4 | Show each returned jar name, percentage, and budget. |
@@ -153,10 +154,10 @@ Do not retry POST automatically after a timeout. A plan may have been created; a
 | Control | Model | Validation |
 |---|---|---|
 | Period | `{ year: number \| null, month: number \| null }` | Required; year 1-9999; month 1-12 |
-| Income | Canonical digit string | Required; digits only; positive integer; no sign, decimal, or fraction |
+| Income | Canonical digit string | Required; digits only; positive integer; no sign, decimal, or fraction; display periods as group separators |
 | Defaults | `DefaultJarsResponse` | Seven known unique jars; integer rates total 100%; `currency === 'VND'` |
 
-The UI may display grouping separators, but it must normalize to ungrouped ASCII digits before validation/request creation and must not silently remove arbitrary symbols. A current-month default and localized grouping convention remain pending requirements approval.
+The F1 income field accepts a canonical ASCII digit string and displays groups of three digits with periods (for example, `1000` displays as `1.000`). Periods are display separators only; the form and API retain `1000`. Commas, signs, decimals, and other invalid characters remain invalid and are not silently removed. The month control defaults to the current month and remains editable.
 
 For responses, perform a shape check before rendering: `currency` must be `VND`, there must be exactly seven known unique jar types, percentages must be integer values totaling 100%, and all money values must be digit-only strings. Do not independently replace backend arithmetic with a client calculation.
 
@@ -238,13 +239,13 @@ sequenceDiagram
 
 ## 14. Frontend Tasks
 
-- [ ] Add the shared TypeScript models and typed API service.
-- [ ] Build the F1 planning form and read-only default-jar list.
-- [ ] Implement whole-VND string handling and accessible validation.
-- [ ] Implement create pending, duplicate, network, and validation states.
-- [ ] Add the shared plan route with year/month parsing and not-found handling.
-- [ ] Render F1 post-create/F2 allocation using backend values only.
-- [ ] Implement the HTML reference mapping, responsive seven-card layout, donut/legend, and percentage-share accents without adding progress data.
+- [x] Add the shared TypeScript models and typed API service.
+- [x] Build the F1 planning form and read-only default-jar list.
+- [x] Implement whole-VND string handling and accessible validation.
+- [x] Implement create pending, duplicate, uncertain-network, and validation states.
+- [x] Add the shared plan route with year/month parsing and loading, retry, and not-found handling.
+- [x] Render F1 post-create income and jar budgets using backend values only.
+- [ ] Complete F2's HTML reference mapping, including its responsive allocation visualization, donut/legend, and percentage-share accents without adding spending-progress data.
 
 ## 15. Parallel Development and Traceability
 

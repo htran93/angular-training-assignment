@@ -1,11 +1,12 @@
 <div class="ff-vnd-input" [class.ff-vnd-input--invalid]="invalid">
   <input
+    #amountInput
     class="ff-input ff-vnd-input__control"
-    [id]="id"
+    [id]="inputId"
     type="text"
     inputmode="numeric"
     autocomplete="off"
-    [value]="value"
+    [value]="displayValue"
     [placeholder]="placeholder"
     [required]="required"
     [disabled]="disabled"

@@ -42,6 +42,11 @@ BR-006: Jar budget = TotalIncome x AllocationPercentage / 100.
 
 BR-007: The sum of all jar budgets must equal TotalIncome.
 
+Whole-VND allocation uses the approved largest-remainder policy: assign each jar
+the floor of its exact percentage share, then distribute remaining VND units by
+descending fractional remainder. Ties follow the canonical jar order. The final
+seven budgets must be non-negative and sum exactly to the monthly income.
+
 BR-008: Only one monthly plan is allowed for each Year + Month.
 
 BR-009: Currency is VND and monetary values are stored as whole VND amounts.

@@ -26,6 +26,8 @@
 | A1 | The month selector identifies a year and month.                 | Duplicate-plan validation and plan lookup rules may need revision.  |
 | A2 | Income is entered as a positive VND amount.                     | Currency and validation rules may need revision.                    |
 | A3 | The seven jar names and allocation rates are fixed for the MVP. | The default jar definition must be confirmed before implementation. |
+| A4 | The selector defaults to the current month, but the user can change it. | The initial form state may need revision. |
+| A5 | Income is represented by ASCII digits; the input displays period separators in groups of three, while commas and other non-digit characters remain invalid. | Input guidance and validation behavior may need revision. |
 
 ## Basic GUI and Behavior Notes
 
@@ -33,7 +35,8 @@
   - a month selector;
   - a required monthly income input field in VND;
   - a create-plan action.
-- The income field accepts a monetary amount and displays a clear validation message when the value is missing, zero, negative, or invalid.
+- The month selector defaults to the current month and remains editable.
+- The income field accepts ASCII digit input and automatically displays groups of three digits using periods (for example, entering `1000` displays `1.000`). The form and API value remains the ungrouped digit string (`1000`). Commas, signs, decimals, and other non-digit characters remain invalid.
 - After successful creation, the user is taken to or shown the current month's jar dashboard.
 - The screen does not require advanced styling, custom jar editing, or expense entry as part of this story.
 
@@ -132,9 +135,7 @@ Then the plan contains these seven jars with the specified default rates:
 
 ## Open Questions
 
-- Should the month selector default to the current month?
 - Should an existing monthly plan be opened for review, or should the user be directed to the dashboard without resubmitting?
-- Should income formatting use thousand separators while the user types?
 
 ## Readiness Check
 

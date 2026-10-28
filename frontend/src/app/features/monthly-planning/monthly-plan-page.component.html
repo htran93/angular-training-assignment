@@ -1,0 +1,68 @@
+<app-app-shell>
+  <div class="monthly-plan-page">
+    <nav class="monthly-plan-page__breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/monthly-planning">Monthly planning</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ monthLabel() || 'Monthly plan' }}</span>
+    </nav>
+
+    <header class="monthly-plan-page__intro">
+      <h1>Monthly plan</h1>
+      @if (monthLabel()) {
+        <p>{{ monthLabel() }}</p>
+      }
+    </header>
+
+    @if (state() === 'loading') {
+      <app-state-panel
+        variant="loading"
+        title="Loading monthly plan"
+        message="Retrieving the saved plan and jar budgets." />
+    } @else if (state() === 'not-found') {
+      <app-state-panel
+        variant="unavailable"
+        title="No plan for this month"
+        message="Create a monthly plan before viewing its jar budgets.">
+        <a state-action class="ff-button ff-button--primary" routerLink="/monthly-planning">Create monthly plan</a>
+      </app-state-panel>
+    } @else if (state() === 'invalid-period') {
+      <app-state-panel
+        variant="error"
+        title="Invalid month"
+        message="The requested year or month is not valid. Select a month to create or view a plan.">
+        <a state-action class="ff-button ff-button--secondary" routerLink="/monthly-planning">Monthly planning</a>
+      </app-state-panel>
+    } @else if (state() === 'error') {
+      <app-state-panel
+        variant="error"
+        title="Plan unavailable"
+        message="We could not verify the saved plan. No amounts are shown.">
+        <button state-action class="ff-button ff-button--secondary" type="button" (click)="retry()">Try again</button>
+        <a state-action class="ff-button ff-button--secondary" routerLink="/monthly-planning">Monthly planning</a>
+      </app-state-panel>
+    } @else if (plan(); as savedPlan) {
+      <div class="monthly-plan-page__content">
+        <section class="monthly-plan-page__income" aria-label="Monthly income summary">
+          <app-metric-card
+            label="Total monthly income"
+            [value]="savedPlan.monthlyIncomeVnd | vndAmount"
+            [detail]="monthLabel()" />
+        </section>
+
+        <app-panel title="Your seven jars">
+          <ul class="monthly-plan-page__jar-grid" aria-label="Monthly jar budgets">
+            @for (jar of savedPlan.jars; track jar.jarType) {
+              <li>
+                <app-jar-card
+                  [jarType]="jar.jarType"
+                  [name]="jar.name"
+                  [percentage]="jar.percentage"
+                  [amountVnd]="jar.budgetVnd" />
+              </li>
+            }
+          </ul>
+        </app-panel>
+      </div>
+    }
+  </div>
+</app-app-shell>

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { routes } from './app.routes';
+import { MonthlyPlanPageComponent } from './features/monthly-planning/monthly-plan-page.component';
+import { MonthlyPlanningPageComponent } from './features/monthly-planning/monthly-planning-page.component';
 import { RoutePlaceholderPageComponent } from './route-placeholder-page.component';
 
 describe('routes', () => {
@@ -15,18 +17,15 @@ describe('routes', () => {
     ]);
   });
 
-  it('renders a clear placeholder for each not-yet-implemented feature route', () => {
+  it('uses the monthly planning pages and leaves other feature routes explicit placeholders', () => {
     const featureRoutes = routes.filter(route =>
       ['dashboard', 'monthly-planning', 'monthly-plans/:year/:month', 'expenses/new'].includes(route.path ?? '')
     );
 
     expect(featureRoutes).toHaveLength(4);
-    expect(featureRoutes.every(route => route.component === RoutePlaceholderPageComponent)).toBe(true);
-    expect(featureRoutes.map(route => route.data?.['pageTitle'])).toEqual([
-      'Dashboard',
-      'Monthly planning',
-      'Monthly plan',
-      'Add expense'
-    ]);
+    expect(routes.find(route => route.path === 'monthly-planning')?.component).toBe(MonthlyPlanningPageComponent);
+    expect(routes.find(route => route.path === 'monthly-plans/:year/:month')?.component).toBe(MonthlyPlanPageComponent);
+    expect(routes.find(route => route.path === 'dashboard')?.component).toBe(RoutePlaceholderPageComponent);
+    expect(routes.find(route => route.path === 'expenses/new')?.component).toBe(RoutePlaceholderPageComponent);
   });
 });

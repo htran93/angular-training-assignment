@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { MonthlyPlanPageComponent } from './features/monthly-planning/monthly-plan-page.component';
+import { MonthlyPlanningPageComponent } from './features/monthly-planning/monthly-planning-page.component';
 import { RoutePlaceholderPageComponent } from './route-placeholder-page.component';
 
 export const routes: Routes = [
@@ -11,12 +13,12 @@ export const routes: Routes = [
   },
   {
     path: 'monthly-planning',
-    component: RoutePlaceholderPageComponent,
+    component: MonthlyPlanningPageComponent,
     data: { pageTitle: 'Monthly planning' }
   },
   {
     path: 'monthly-plans/:year/:month',
-    component: RoutePlaceholderPageComponent,
+    component: MonthlyPlanPageComponent,
     data: { pageTitle: 'Monthly plan' }
   },
   {

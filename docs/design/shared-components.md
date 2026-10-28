@@ -14,11 +14,11 @@ The shared layer provides layout and presentation primitives only. It does not i
 | Button primitive | `.ff-button` | Shared primary and secondary action styles. Use native `<button>` or `<a>` elements so keyboard and disabled behavior remains semantic. |
 | Month selector | `app-month-selector` | Accessible native select for a supplied list of `YYYY-MM` periods. The caller decides whether options mean all months or only months with saved plans. |
 | Panel | `app-panel` | Named, titled content region with optional projected `[panel-actions]`. |
-| Jar card | `app-jar-card` | Consistent jar accent, name, percentage, optional guidance, and optional whole-VND amount. An optional `[jar-icon]` slot accepts a decorative icon. |
+| Jar card | `app-jar-card` | Consistent jar accent, built-in decorative icon by jar type, name, percentage, optional guidance, and optional whole-VND amount. An optional `[jar-icon]` projection overrides the default icon. |
 | Metric card | `app-metric-card` | Label/value/detail block for income, spending, and balance summaries. Values are display strings, not calculated here. |
 | Progress bar | `app-progress-bar` | Accessible visual progress indicator. It caps only the visual fill and ARIA numeric value; `valueText` preserves the full supplied value. |
 | Form field | `app-form-field` | Label, required marker, help text, error announcement, and control description IDs. |
-| VND amount input | `app-vnd-amount-input` | Angular forms control for whole-VND text. It preserves the entered string; validation and normalization belong to the owning form. |
+| VND amount input | `app-vnd-amount-input` | Angular forms control for whole-VND text. With `groupThousands` enabled, it displays periods between digit groups while preserving the ungrouped form value; validation belongs to the owning form. |
 | State panel | `app-state-panel` | Empty, error, loading, or unavailable message with an optional projected `[state-action]`. |
 | VND amount pipe | `vndAmount` | Adds grouping separators and `VND` to a digit string without converting it to `number`. Negative digit strings are supported for over-budget balances. |
 
@@ -65,8 +65,9 @@ Each `MonthOption` has a `value` in `YYYY-MM` format and a display `label`. Do n
   [required]="true"
   [errorMessage]="incomeError">
   <app-vnd-amount-input
-    id="monthly-income"
+    inputId="monthly-income"
     [formControl]="incomeControl"
+    [groupThousands]="true"
     [required]="true"
     [invalid]="!!incomeError"
     [describedBy]="incomeField.describedBy" />
@@ -75,7 +76,7 @@ Each `MonthOption` has a `value` in `YYYY-MM` format and a display `label`. Do n
 <strong>{{ monthlyIncomeVnd | vndAmount }}</strong>
 ```
 
-`incomeControl` must be a string control. The input intentionally does not strip punctuation or parse amounts; the feature form owns validation and request normalization.
+`incomeControl` must be a string control containing the canonical digits. The optional `groupThousands` input formats digit-only values with periods for display while leaving the form value ungrouped. Other invalid characters, such as commas, are preserved for the feature form to validate; the component does not convert amounts to numbers.
 
 ### Jar card, metrics, and progress
 
@@ -117,7 +118,7 @@ Use `.ff-button ff-button--primary` for a primary action and `.ff-button ff-butt
 - **Progress:** A percentage above 100 may be shown in `valueText`; only visual fill and `aria-valuenow` are capped. Include a textual over-budget status rather than relying on color.
 - **State panels:** Errors use `role="alert"`; other states use `role="status"`. Add a keyboard-accessible link or button using the `[state-action]` slot.
 - **Navigation identity:** The family name/initials are presentation placeholders; they do not imply authentication or account functionality.
-- **Icons:** No reusable icon asset set is supplied with the feature captures. The shell uses text labels and jar icons may be projected into `[jar-icon]`.
+- **Icons:** Jar cards render the decorative inline SVG associated with their canonical jar type unless a `[jar-icon]` is projected. The shell uses text labels; no external icon assets or dependency are required.
 
 ## Design tokens
 

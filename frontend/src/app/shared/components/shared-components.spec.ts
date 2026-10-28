@@ -19,11 +19,19 @@ import { VndAmountPipe } from '../pipes/vnd-amount.pipe';
   selector: 'test-vnd-amount-input-host',
   standalone: true,
   imports: [ReactiveFormsModule, VndAmountInputComponent],
-  template: '<app-vnd-amount-input id="amount" [formControl]="amount" />'
+  template: '<app-vnd-amount-input inputId="amount" [formControl]="amount" />'
 })
 class VndAmountInputHostComponent {
   readonly amount = new FormControl('1250', { nonNullable: true });
 }
+
+@Component({
+  selector: 'test-jar-card-with-custom-icon',
+  standalone: true,
+  imports: [JarCardComponent],
+  template: '<app-jar-card jarType="food" name="Food"><svg jar-icon data-test-icon="custom"></svg></app-jar-card>'
+})
+class JarCardWithCustomIconHostComponent {}
 
 describe('shared components', () => {
   it('renders the app shell navigation', async () => {
@@ -99,6 +107,43 @@ describe('shared components', () => {
     expect(fixture.nativeElement.textContent).toContain('1,250,000 VND');
   });
 
+  it('renders a decorative icon for every canonical jar type', async () => {
+    await TestBed.configureTestingModule({ imports: [JarCardComponent] }).compileComponents();
+
+    const fixture = TestBed.createComponent(JarCardComponent);
+    fixture.componentRef.setInput('jarType', 'livingExpenses');
+    fixture.componentRef.setInput('name', 'Jar');
+
+    for (const jarType of [
+      'livingExpenses',
+      'food',
+      'children',
+      'emergencyFund',
+      'savings',
+      'investment',
+      'entertainmentAndTravel'
+    ] as const) {
+      fixture.componentRef.setInput('jarType', jarType);
+      fixture.detectChanges();
+
+      const marker = fixture.nativeElement.querySelector('.ff-jar-card__marker') as HTMLElement;
+      const icon = marker.querySelector('svg') as SVGElement | null;
+      expect(icon).not.toBeNull();
+      expect(icon?.querySelector('path, circle')).not.toBeNull();
+      expect(marker.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
+  it('uses a projected jar icon instead of the default icon when supplied', async () => {
+    await TestBed.configureTestingModule({ imports: [JarCardWithCustomIconHostComponent] }).compileComponents();
+
+    const fixture = TestBed.createComponent(JarCardWithCustomIconHostComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-test-icon="custom"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.ff-jar-card__icon')).toBeNull();
+  });
+
   it('renders a metric label and value', async () => {
     await TestBed.configureTestingModule({ imports: [MetricCardComponent] }).compileComponents();
 
@@ -169,7 +214,7 @@ describe('shared components', () => {
     await TestBed.configureTestingModule({ imports: [VndAmountInputComponent] }).compileComponents();
 
     const fixture = TestBed.createComponent(VndAmountInputComponent);
-    fixture.componentRef.setInput('id', 'income');
+    fixture.componentRef.setInput('inputId', 'income');
     fixture.detectChanges();
 
     let changedValue = '';
@@ -180,6 +225,47 @@ describe('shared components', () => {
 
     expect(changedValue).toBe('0012500');
     expect(fixture.componentInstance.value).toBe('0012500');
+  });
+
+  it('groups VND digits with periods while emitting the raw value and preserving the caret', async () => {
+    await TestBed.configureTestingModule({ imports: [VndAmountInputComponent] }).compileComponents();
+
+    const fixture = TestBed.createComponent(VndAmountInputComponent);
+    fixture.componentRef.setInput('inputId', 'income');
+    fixture.componentRef.setInput('groupThousands', true);
+    fixture.detectChanges();
+
+    let changedValue = '';
+    fixture.componentInstance.registerOnChange((value: string) => changedValue = value);
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+
+    input.value = '1000';
+    input.setSelectionRange(4, 4);
+    input.dispatchEvent(new Event('input'));
+
+    expect(input.value).toBe('1.000');
+    expect(input.selectionStart).toBe(5);
+    expect(changedValue).toBe('1000');
+
+    input.value = '1.2000';
+    input.setSelectionRange(3, 3);
+    input.dispatchEvent(new InputEvent('input', { inputType: 'insertText', data: '2', bubbles: true }));
+
+    expect(input.value).toBe('12.000');
+    expect(input.selectionStart).toBe(2);
+    expect(changedValue).toBe('12000');
+
+    input.value = '1.2';
+    input.dispatchEvent(new InputEvent('input', { inputType: 'insertFromPaste', data: '1.2', bubbles: true }));
+
+    expect(input.value).toBe('1.2');
+    expect(changedValue).toBe('1.2');
+
+    input.value = '25,000,000';
+    input.dispatchEvent(new Event('input'));
+
+    expect(input.value).toBe('25,000,000');
+    expect(changedValue).toBe('25,000,000');
   });
 
   it('integrates the VND input with Angular forms value, touched, and disabled states', async () => {
@@ -235,6 +321,22 @@ describe('shared components', () => {
       expect(state.getAttribute('role')).toBe('status');
       expect(state.getAttribute('aria-live')).toBe('polite');
     }
+  });
+
+  it('can focus the VND amount control for form validation feedback', async () => {
+    await TestBed.configureTestingModule({
+      imports: [VndAmountInputComponent]
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(VndAmountInputComponent);
+    fixture.componentRef.setInput('inputId', 'income');
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    fixture.componentInstance.focus();
+
+    expect(fixture.nativeElement.querySelectorAll('[id="income"]')).toHaveLength(1);
+    expect(document.activeElement).toBe(input);
   });
 
   it('formats whole VND strings without converting them to JavaScript numbers', () => {
