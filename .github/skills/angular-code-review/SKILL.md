@@ -9,10 +9,11 @@ description: Review Angular 21.2 and TypeScript changes for correctness, regress
 
 1. Inspect the diff and surrounding code needed to understand behavior.
 2. Check relevant Angular, TypeScript, RxJS, and dependency versions before judging API usage.
-3. Trace affected flows through components, services, routing, forms, and API boundaries as needed.
+3. Read the relevant requirement story/acceptance criteria, matching design/API specification, domain rules, and test cases under `docs/`. Treat mockup HTML as visual reference, not the source of business behavior.
+4. Trace affected flows through components, services, routing, forms, and API boundaries as needed.
    - The app is standalone Angular under `frontend/src/`; inspect `frontend/src/app/shared/` and `docs/design/shared-components.md` before flagging or recommending duplicate UI primitives.
    - Shared UI styles and tokens are in `frontend/src/styles/`; requirement feature HTML under `docs/requirements/` is the chosen visual reference.
-4. Look for concrete issues:
+5. Look for concrete issues:
    - Incorrect behavior, boundary cases, race conditions, or stale state.
    - Resource, subscription, or event-listener cleanup problems.
    - Incorrect loading or error handling.
@@ -23,8 +24,8 @@ description: Review Angular 21.2 and TypeScript changes for correctness, regress
    - Accessibility problems in markup or interaction.
    - Breaking public-contract changes or unnecessary performance costs.
    - Missing or ineffective regression tests.
-5. Check whether Vitest coverage meaningfully exercises changed behavior.
-6. Report actionable findings supported by code. Do not invent issues or treat personal style preferences as defects.
+6. Check whether Vitest coverage meaningfully exercises acceptance criteria and test scenarios.
+7. Report actionable findings supported by code. Do not invent issues or treat personal style preferences as defects.
 
 ## Finding format
 

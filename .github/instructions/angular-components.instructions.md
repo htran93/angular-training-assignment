@@ -10,6 +10,9 @@ applyTo: "{frontend/src/**/*.component.ts,frontend/src/**/*.component.html,front
 - Follow the project's existing component naming, selector, file layout, styling, and standalone/NgModule conventions.
 - The application is standalone Angular. Put cross-feature presentation primitives in `frontend/src/app/shared/` and export them from `frontend/src/app/shared/index.ts`; feature-specific orchestration belongs in the relevant feature area.
 - Before creating a new shared primitive, read `docs/design/shared-components.md` and check for an existing component or style in `frontend/src/app/shared/` and `frontend/src/styles/`.
+- For feature UI, read the matching requirement story and acceptance criteria under `docs/requirements/`, then its design/frontend specification under `docs/design/`; use the companion HTML as the visual reference, not as the behavior/API contract.
+- Check applicable domain rules in `docs/knowledge/domain.md` and related scenarios in `docs/testing/test-cases/`. Do not promote mockup sample values into defaults or business rules.
+- If requirements, design specs, and current implementation disagree, identify the conflict and resolve or ask before implementing behavior that changes financial or user-visible outcomes.
 - Shared components currently include `app-app-shell`, `app-month-selector`, `app-panel`, `app-jar-card`, `app-metric-card`, `app-progress-bar`, `app-form-field`, `app-vnd-amount-input`, and `app-state-panel`; the `vndAmount` pipe formats whole-VND strings.
 - Use the `ff-` CSS class namespace and existing `--f1-*`, semantic theme, typography, and breakpoint tokens. Do not duplicate embedded styles from requirement HTML or create competing token sets.
 - The approved visual references for shared UI are the feature HTML files in `docs/requirements/` (FamilyFinance / Mulish). The token preview and NashTech brand guideline are supplementary and do not override those captures without a product decision.

@@ -7,6 +7,8 @@ applyTo: "frontend/src/**/*.service.ts,frontend/src/**/api/**/*.ts,frontend/src/
 # Angular Services and Data Access
 
 - Inspect existing services, API models, HTTP interceptors, and nearby tests before implementation.
+- Before adding feature data access, read its requirement/acceptance criteria under `docs/requirements/`, matching API/frontend/backend specification under `docs/design/`, and applicable rules in `docs/knowledge/domain.md`. Treat the documented API contract and current backend implementation as the sources to reconcile; surface mismatches rather than inventing fields or behavior.
+- Check related integration scenarios in `docs/testing/test-cases/` so service methods preserve required success, validation, not-found, conflict, and error behavior.
 - Keep each service focused on a cohesive responsibility.
 - Reuse configured Angular `HttpClient`, interceptors, environment configuration, and existing API abstractions.
 - Do not introduce a new HTTP client, state-management library, or dependency without a concrete reason.

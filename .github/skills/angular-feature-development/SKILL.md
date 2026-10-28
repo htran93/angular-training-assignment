@@ -8,16 +8,18 @@ description: Plan and implement features in this Angular 21.2 project while foll
 ## Workflow
 
 1. Inspect `frontend/package.json`, `frontend/angular.json`, TypeScript configuration, source structure, related implementation, and nearby tests.
-2. Read the relevant `docs/requirements/` story and HTML reference plus the related `docs/design/` specification before deciding page behavior.
-3. Confirm the repository's standalone component architecture, routing, state, forms, styling, HTTP, and dependency-injection conventions.
-4. Reuse shared UI from `frontend/src/app/shared/` and styles/tokens from `frontend/src/styles/`; consult `docs/design/shared-components.md` before adding another generic component.
-5. Summarize the behavior to implement and identify affected files and regression risks.
-6. Ask a focused question if an unresolved requirement materially affects the design; otherwise state a reasonable assumption.
-7. Implement the smallest maintainable change using Angular 21.2-compatible APIs.
-8. Add or update tests using the project's configured Vitest and Angular test setup.
-9. From `frontend/`, run focused tests with `corepack npm test -- --include=<test-file>` and `corepack npm run build` when feasible. Check actual output and report failures accurately.
-10. Review the diff for correctness, accessibility, security, duplication, and unrelated changes.
-11. Validate the page at representative desktop, tablet, and mobile viewport widths when browser tools are available; otherwise inspect responsive CSS and report that visual validation was unavailable.
+2. Read `docs/product-brief.md` when relevant, the requirement story/acceptance criteria and HTML reference under `docs/requirements/`, matching frontend/backend specifications under `docs/design/`, applicable rules in `docs/knowledge/domain.md`, and related cases under `docs/testing/test-cases/`.
+3. Treat requirement Markdown as behavior, design specifications as API/technical contracts, HTML as visual guidance, and test cases as scenario coverage. Mockup sample values are illustrative only.
+4. If docs conflict, are stale, or leave consequential behavior unresolved, inspect the current implementation and identify the discrepancy; ask before inventing a financial or user-visible rule.
+5. Confirm the repository's standalone component architecture, routing, state, forms, styling, HTTP, and dependency-injection conventions.
+6. Reuse shared UI from `frontend/src/app/shared/` and styles/tokens from `frontend/src/styles/`; consult `docs/design/shared-components.md` before adding another generic component.
+7. Summarize the behavior to implement and identify affected files and regression risks.
+8. Ask a focused question if an unresolved requirement materially affects the design; otherwise state a reasonable assumption.
+9. Implement the smallest maintainable change using Angular 21.2-compatible APIs.
+10. Add or update tests using the project's configured Vitest and Angular test setup.
+11. From `frontend/`, run focused tests with `corepack npm test -- --include=<test-file>` and `corepack npm run build` when feasible. Check actual output and report failures accurately.
+12. Review the diff for correctness, accessibility, security, duplication, and unrelated changes.
+13. Validate the page at representative desktop, tablet, and mobile viewport widths when browser tools are available; otherwise inspect responsive CSS and report that visual validation was unavailable.
 
 ## Constraints
 

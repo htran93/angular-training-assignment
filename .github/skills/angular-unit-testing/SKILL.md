@@ -8,14 +8,15 @@ description: Create, improve, or troubleshoot unit tests for this standalone Ang
 ## Workflow
 
 1. Inspect `frontend/package.json`, `frontend/angular.json`, TypeScript configuration, and nearby tests. Confirm the test runner and actual environment before choosing APIs; do not assume a standalone Vitest config exists.
-2. Read the implementation and identify its public behavior, dependencies, async work, and edge cases.
-3. Design tests for expected behavior, error paths, boundaries, accessibility semantics, and the regression being prevented.
-4. Follow existing conventions and use Vitest APIs (`vi`, `expect`, `describe`, `it`/`test`) rather than Jest APIs.
-5. Use Angular TestBed and project helpers where the existing setup requires them. Shared UI components are standalone and are imported directly in TestBed.
-6. Keep tests deterministic and focused. Mock external boundaries where appropriate without excessively mocking the unit under test.
-7. From `frontend/`, run the narrowest relevant test command. For shared UI, use `corepack npm test -- --include=src/app/shared/components/shared-components.spec.ts`; run `corepack npm test` when a broader check is feasible.
-8. Diagnose failures rather than weakening assertions. The route spec currently expects feature routes that remain commented out; treat it as known baseline context unless route wiring is within the requested change.
-9. Report which commands actually ran and any environment limitations.
+2. Read the matching requirement story and acceptance criteria under `docs/requirements/`, relevant `docs/testing/test-cases/`, and related `docs/design/` API or frontend specification. Read `docs/knowledge/domain.md` when the behavior depends on financial rules.
+3. Read the implementation and identify its public behavior, dependencies, async work, and edge cases.
+4. Design tests for expected behavior, error paths, boundaries, accessibility semantics, and the regression being prevented. Do not invent expectations from illustrative mockup data or unresolved requirements.
+5. Follow existing conventions and use Vitest APIs (`vi`, `expect`, `describe`, `it`/`test`) rather than Jest APIs.
+6. Use Angular TestBed and project helpers where the existing setup requires them. Shared UI components are standalone and are imported directly in TestBed.
+7. Keep tests deterministic and focused. Mock external boundaries where appropriate without excessively mocking the unit under test.
+8. From `frontend/`, run the narrowest relevant test command. For shared UI, use `corepack npm test -- --include=src/app/shared/components/shared-components.spec.ts`; run `corepack npm test` when a broader check is feasible.
+9. Diagnose failures rather than weakening assertions. Route tests expect registered feature paths; routes not yet implemented should render explicit placeholders until real feature pages replace them.
+10. Report which commands actually ran and any environment limitations.
 
 ## Angular-specific considerations
 

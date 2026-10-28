@@ -17,11 +17,14 @@
 - Available scripts are in `frontend/package.json`: `npm start`, `npm run build`, `npm run watch`, and `npm test`. Run them from `frontend/`; use `corepack npm` to honor the pinned npm version.
 - No lint script is shown in the supplied `package.json`. Do not assume ESLint or another linter is installed.
 - The Angular test target uses Vitest. The focused shared-component test file is `frontend/src/app/shared/components/shared-components.spec.ts`.
-- Feature routes are not fully wired yet; inspect `frontend/src/app/app.routes.ts` before assuming a page is reachable.
+- Feature route paths are registered, but several still display placeholder pages; inspect `frontend/src/app/app.routes.ts` and the target route component before assuming a feature workflow is implemented.
 
 ## General approach
 - Treat existing source code and configuration as the source of truth.
 - Before changing code, inspect relevant files, `angular.json`, `tsconfig*.json`, and nearby tests.
+- Before implementing a feature, read `docs/product-brief.md` when relevant, its requirement story/acceptance criteria under `docs/requirements/`, matching development specs under `docs/design/`, applicable rules in `docs/knowledge/domain.md`, and related cases under `docs/testing/test-cases/`.
+- Treat requirement Markdown as the behavior contract, development specs as the API/technical contract, and feature HTML as visual reference. Mockup sample values are not runtime requirements.
+- If those documents conflict, are stale, or leave behavior open, compare the actual source tree and API implementation, then surface the discrepancy instead of silently choosing a business rule.
 - Make the smallest focused change that satisfies the request. Avoid unrelated refactors.
 - Reuse established architecture, utilities, components, and dependencies.
 - Do not add dependencies or invent project conventions without a clear need.
@@ -61,7 +64,7 @@
 - Add or update tests for behavior changes, including meaningful failure paths and edge cases.
 - Do not remove or weaken tests just to make them pass.
 - From `frontend/`, run focused tests with `corepack npm test -- --include=src/app/shared/components/shared-components.spec.ts`; run the complete suite with `corepack npm test` and compile with `corepack npm run build` when feasible.
-- The route test currently expects feature routes that are commented out in `app.routes.ts`. Treat that as known baseline context; do not weaken the test or wire unrelated routes just to make a focused change pass.
+- Route tests verify registered feature paths, which currently render explicit placeholders where feature pages have not yet been implemented. Replace placeholders with real pages when implementing those workflows; do not weaken route expectations to hide missing routes.
 - Use `corepack npm run watch` only when watch-mode validation is specifically useful.
 - Do not claim tests, coverage, or builds passed unless the command was actually run and its result checked.
 - No lint command is present in the supplied manifest; check repository configuration before suggesting or running lint.
