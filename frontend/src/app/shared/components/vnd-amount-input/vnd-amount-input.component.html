@@ -1,0 +1,17 @@
+<div class="ff-vnd-input" [class.ff-vnd-input--invalid]="invalid">
+  <input
+    class="ff-input ff-vnd-input__control"
+    [id]="id"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    [value]="value"
+    [placeholder]="placeholder"
+    [required]="required"
+    [disabled]="disabled"
+    [attr.aria-invalid]="invalid ? 'true' : null"
+    [attr.aria-describedby]="describedBy"
+    (input)="onInput($event)"
+    (blur)="onBlur()" />
+  <span class="ff-vnd-input__currency" aria-hidden="true">{{ currencyLabel }}</span>
+</div>

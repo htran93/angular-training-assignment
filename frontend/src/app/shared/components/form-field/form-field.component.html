@@ -1,0 +1,18 @@
+<div class="ff-form-field">
+  <label class="ff-form-field__label" [for]="controlId">
+    {{ label }}
+    @if (required) {
+      <span class="ff-form-field__required" aria-hidden="true">*</span>
+      <span class="ff-visually-hidden"> (required)</span>
+    }
+  </label>
+
+  <ng-content />
+
+  @if (helpText) {
+    <p class="ff-form-field__help" [id]="controlId + '-help'">{{ helpText }}</p>
+  }
+  @if (errorMessage) {
+    <p class="ff-form-field__error" [id]="controlId + '-error'" role="alert">{{ errorMessage }}</p>
+  }
+</div>

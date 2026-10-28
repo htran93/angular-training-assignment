@@ -13,6 +13,7 @@ applyTo: "{frontend/src/**/*.component.ts,frontend/src/**/*.component.html,front
 - Shared components currently include `app-app-shell`, `app-month-selector`, `app-panel`, `app-jar-card`, `app-metric-card`, `app-progress-bar`, `app-form-field`, `app-vnd-amount-input`, and `app-state-panel`; the `vndAmount` pipe formats whole-VND strings.
 - Use the `ff-` CSS class namespace and existing `--f1-*`, semantic theme, typography, and breakpoint tokens. Do not duplicate embedded styles from requirement HTML or create competing token sets.
 - The approved visual references for shared UI are the feature HTML files in `docs/requirements/` (FamilyFinance / Mulish). The token preview and NashTech brand guideline are supplementary and do not override those captures without a product decision.
+- Responsive behavior is required for every shared component and feature page. Follow the feature HTML breakpoints and existing breakpoint tokens; reflow content for mobile, avoid unintended horizontal scrolling, and keep controls readable and operable.
 - Keep shared components presentational: no feature API calls or authoritative financial calculations. Preserve backend money strings, use backend-supplied jar names and amounts, and keep form validation in the owning feature unless the behavior is truly generic.
 - Use Angular 21.2-supported APIs.
 - Keep components focused on rendering, user interaction, and coordinating feature behavior.
@@ -24,4 +25,5 @@ applyTo: "{frontend/src/**/*.component.ts,frontend/src/**/*.component.html,front
 - Give projected form controls unique IDs and connect help/error text through `aria-describedby`; errors should be exposed as text, not color alone.
 - For progress above 100%, cap only the visual fill; retain the full percentage in visible/accessible text and identify over-budget status without color alone.
 - Keep styles consistent with the existing styling system.
+- Check component layout at desktop, tablet, and mobile widths; do not rely on the desktop capture alone.
 - Add or update Vitest tests using the repository's existing Angular testing setup.

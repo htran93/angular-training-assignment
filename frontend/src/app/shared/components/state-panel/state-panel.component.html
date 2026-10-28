@@ -1,0 +1,14 @@
+<section
+  class="ff-state-panel"
+  [class.ff-state-panel--empty]="variant === 'empty'"
+  [class.ff-state-panel--error]="variant === 'error'"
+  [class.ff-state-panel--loading]="variant === 'loading'"
+  [class.ff-state-panel--unavailable]="variant === 'unavailable'"
+  [attr.role]="role"
+  [attr.aria-live]="liveMode">
+  <h2>{{ title }}</h2>
+  <p>{{ message }}</p>
+  <div class="ff-state-panel__actions">
+    <ng-content select="[state-action]" />
+  </div>
+</section>

@@ -1,0 +1,33 @@
+<article
+  class="ff-jar-card"
+  [class.ff-jar-card--living]="jarType === 'livingExpenses'"
+  [class.ff-jar-card--food]="jarType === 'food'"
+  [class.ff-jar-card--children]="jarType === 'children'"
+  [class.ff-jar-card--emergency]="jarType === 'emergencyFund'"
+  [class.ff-jar-card--savings]="jarType === 'savings'"
+  [class.ff-jar-card--investment]="jarType === 'investment'"
+  [class.ff-jar-card--travel]="jarType === 'entertainmentAndTravel'">
+  <div class="ff-jar-card__header">
+    <span class="ff-jar-card__marker" aria-hidden="true">
+      <ng-content select="[jar-icon]" />
+    </span>
+    <div class="ff-jar-card__identity">
+      <h3>{{ name }}</h3>
+      @if (description) {
+        <p>{{ description }}</p>
+      }
+    </div>
+    @if (percentage !== null) {
+      <span class="ff-jar-card__percentage">{{ percentage }}%</span>
+    }
+  </div>
+
+  @if (amountVnd !== null) {
+    <div class="ff-jar-card__amount">
+      <span>{{ amountLabel }}</span>
+      <strong>{{ amountVnd | vndAmount }}</strong>
+    </div>
+  }
+
+  <ng-content />
+</article>

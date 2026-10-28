@@ -1,0 +1,8 @@
+<app-app-shell>
+  @if (pageTitle$ | async; as pageTitle) {
+    <app-state-panel
+      variant="unavailable"
+      [title]="pageTitle"
+      [message]="pageTitle + ' is not implemented yet.'" />
+  }
+</app-app-shell>

@@ -131,6 +131,16 @@ The component styles reuse the existing tokens in `frontend/src/styles/base/` an
 
 The feature HTML shares the FamilyFinance label, Mulish font, jar palette, and breakpoint tokens. Do not copy component markup or embedded styles from an individual feature file. The NashTech Notes brand guideline is specific to its documented monthly-planning capture and should not override the shared feature captures without a product decision.
 
+## Responsive behavior
+
+Responsive support is required throughout the site, including every feature page and shared component. Use the feature-reference breakpoints (`--breakpoint-mobile`, `--breakpoint-tablet`, and `--breakpoint-laptop`) and preserve the captured reading order as layouts reflow.
+
+- The app shell moves from sidebar/content columns to a stacked layout at the tablet breakpoint; navigation remains reachable on narrow screens.
+- Feature grids and metric cards should reflow to fewer columns as viewport width decreases.
+- Forms remain readable and operable on mobile; controls and labels must not clip or overlap.
+- Jar names and VND amounts may wrap when needed. Avoid unintended horizontal scrolling; any intentionally scrollable region must remain keyboard-operable and clearly bounded.
+- Check representative desktop, tablet, and mobile widths when browser validation is available. If it is unavailable, inspect the responsive rules and state the limitation.
+
 ## Source mapping
 
 - App shell, form fields, and jar cards: [F1 monthly planning](../requirements/f1-monthly-planning/f1-monthly-planning.html)

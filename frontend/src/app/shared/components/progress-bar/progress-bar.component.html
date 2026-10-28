@@ -1,0 +1,14 @@
+<div
+  class="ff-progress"
+  [class.ff-progress--over-budget]="overBudget"
+  role="progressbar"
+  [attr.aria-label]="label"
+  [attr.aria-valuemin]="0"
+  [attr.aria-valuemax]="max"
+  [attr.aria-valuenow]="accessibleValue"
+  [attr.aria-valuetext]="accessibleText">
+  <span class="ff-progress__fill" [style.width.%]="fillPercentage"></span>
+</div>
+@if (valueText) {
+  <span class="ff-progress__value">{{ valueText }}</span>
+}

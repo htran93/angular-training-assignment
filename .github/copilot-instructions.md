@@ -6,6 +6,7 @@
 - The reusable UI layer is in `frontend/src/app/shared/` and exported from `frontend/src/app/shared/index.ts`.
 - Shared component responsibilities and usage are documented in `docs/design/shared-components.md`.
 - Shared Angular styles and tokens are under `frontend/src/styles/`; feature-reference tokens use Mulish, FamilyFinance branding, and the project's jar color tokens.
+- The site must work responsively on desktop, tablet, and mobile viewports. Use the breakpoints and responsive behavior in the requirement HTML and existing style tokens.
 - The feature HTML files under `docs/requirements/` are the selected visual source of truth for shared UI. The token preview and NashTech brand guideline are supplementary and must not silently override the feature captures.
 - Angular framework packages: `^21.2.0`.
 - Angular CLI and `@angular/build`: `^21.2.24`.
@@ -43,6 +44,7 @@
 - For new Angular 21 code, prefer built-in template control flow when appropriate and consistent with nearby code.
 - Use semantic HTML, accessible labels, keyboard interaction, and sensible focus behavior.
 - Preserve the existing forms approach and validation conventions.
+- Keep every page usable across desktop, tablet, and mobile sizes. Reflow grids and panels at the documented breakpoints, prevent unintended horizontal overflow, and retain usable touch/keyboard controls.
 
 ## API handling and security
 - Reuse existing HTTP, interceptor, API-model, and error-handling patterns.

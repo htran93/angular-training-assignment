@@ -1,0 +1,36 @@
+<div class="ff-app-shell">
+  <a class="ff-skip-link" href="#ff-main-content">Skip to main content</a>
+
+  <header class="ff-app-header">
+    <a class="ff-app-header__brand" [routerLink]="homeRoute" aria-label="Family Finance home">
+      <span class="ff-app-header__mark" aria-hidden="true">FF</span>
+      <span>{{ brandName }}</span>
+    </a>
+
+    <div class="ff-family-identity" [attr.aria-label]="familyName">
+      <span>{{ familyName }}</span>
+      <span class="ff-family-identity__avatar" aria-hidden="true">{{ familyInitials }}</span>
+    </div>
+  </header>
+
+  <div class="ff-app-shell__body">
+    <aside class="ff-sidebar" aria-label="Primary navigation">
+      <nav class="ff-navigation">
+        @for (item of navigationItems; track item.route) {
+          <a
+            class="ff-navigation__item"
+            [routerLink]="item.route"
+            routerLinkActive="ff-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            ariaCurrentWhenActive="page">
+            {{ item.label }}
+          </a>
+        }
+      </nav>
+    </aside>
+
+    <main class="ff-app-main" id="ff-main-content">
+      <ng-content />
+    </main>
+  </div>
+</div>
