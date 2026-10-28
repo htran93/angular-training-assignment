@@ -4,9 +4,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationItem } from '../../models/navigation-item';
 
 export const DEFAULT_NAVIGATION_ITEMS: readonly NavigationItem[] = [
-  { label: 'Home', route: '/dashboard' },
-  { label: 'Planning', route: '/monthly-planning' },
-  { label: 'Add Expense', route: '/expenses/new' }
+  { label: 'Home', route: '/dashboard', icon: 'home' },
+  { label: 'Planning', route: '/monthly-planning', icon: 'planning' },
+  { label: 'Add Expense', route: '/expenses/new', icon: 'expense' }
 ];
 
 @Component({

@@ -33,6 +33,18 @@ class VndAmountInputHostComponent {
 })
 class JarCardWithCustomIconHostComponent {}
 
+@Component({
+  selector: 'test-jar-card-with-progress',
+  standalone: true,
+  imports: [JarCardComponent],
+  template: `
+    <app-jar-card jarType="food" name="Food" [percentage]="20" amountVnd="1250000" amountLabel="">
+      <span jar-progress data-test-progress></span>
+    </app-jar-card>
+  `
+})
+class JarCardWithProgressHostComponent {}
+
 describe('shared components', () => {
   it('renders the app shell navigation', async () => {
     await TestBed.configureTestingModule({
@@ -43,9 +55,33 @@ describe('shared components', () => {
     const fixture = TestBed.createComponent(AppShellComponent);
     fixture.detectChanges();
 
+    const brand = fixture.nativeElement.querySelector('.ff-app-header__brand') as HTMLAnchorElement;
+    const brandMark = brand.querySelector('.ff-app-header__mark') as HTMLElement;
+    expect(brand.getAttribute('aria-label')).toBe('Family Finance home');
+    expect(brandMark.getAttribute('aria-hidden')).toBe('true');
+    expect(brandMark.querySelector('svg path')).not.toBeNull();
+
     const links = Array.from(fixture.nativeElement.querySelectorAll('.ff-navigation__item')) as HTMLAnchorElement[];
     expect(links.map(link => link.textContent?.trim())).toEqual(['Home', 'Planning', 'Add Expense']);
+    expect(links.every(link => link.querySelector('.ff-navigation__icon svg'))).toBe(true);
+    const chevron = fixture.nativeElement.querySelector('.ff-family-identity__chevron') as SVGElement;
+    expect(chevron.querySelector('path')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#ff-main-content')).not.toBeNull();
+  });
+
+  it('renders an optional panel eyebrow above its title', async () => {
+    await TestBed.configureTestingModule({ imports: [PanelComponent] }).compileComponents();
+
+    const fixture = TestBed.createComponent(PanelComponent);
+    fixture.componentRef.setInput('title', 'Your default allocation');
+    fixture.componentRef.setInput('eyebrow', 'Fixed allocation');
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.ff-panel') as HTMLElement;
+    const header = fixture.nativeElement.querySelector('.ff-panel__header') as HTMLElement;
+    expect(header.querySelector('.ff-panel__eyebrow')?.textContent?.trim()).toBe('Fixed allocation');
+    expect(header.querySelector('h2')?.textContent?.trim()).toBe('Your default allocation');
+    expect(panel.getAttribute('aria-label')).toBe('Your default allocation');
   });
 
   it('emits the selected period from the month selector', async () => {
@@ -104,6 +140,10 @@ describe('shared components', () => {
     expect(fixture.nativeElement.querySelector('.ff-jar-card--food')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Food');
     expect(fixture.nativeElement.textContent).toContain('20%');
+    expect(
+      fixture.nativeElement.querySelector('.ff-jar-card__identity .ff-jar-card__percentage')?.textContent?.trim()
+    ).toBe('20%');
+    expect(fixture.nativeElement.querySelector('.ff-jar-card__amount > span')?.textContent?.trim()).toBe('Budget');
     expect(fixture.nativeElement.textContent).toContain('1,250,000 VND');
   });
 
@@ -142,6 +182,20 @@ describe('shared components', () => {
 
     expect(fixture.nativeElement.querySelector('[data-test-icon="custom"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.ff-jar-card__icon')).toBeNull();
+  });
+
+  it('projects an optional progress bar inside the jar card and omits an empty amount label', async () => {
+    await TestBed.configureTestingModule({ imports: [JarCardWithProgressHostComponent] }).compileComponents();
+
+    const fixture = TestBed.createComponent(JarCardWithProgressHostComponent);
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.ff-jar-card') as HTMLElement;
+    const progress = card.querySelector('[data-test-progress]');
+
+    expect(progress).not.toBeNull();
+    expect(card.contains(progress)).toBe(true);
+    expect(card.querySelector('.ff-jar-card__amount > span')).toBeNull();
   });
 
   it('renders a metric label and value', async () => {

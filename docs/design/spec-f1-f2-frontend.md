@@ -163,13 +163,13 @@ For responses, perform a shape check before rendering: `currency` must be `VND`,
 
 ## 9. Visual and Display Contract
 
-The F2 visual baseline is [month-budget-summary.html](../requirements/f2-income-allocation/month-budget-summary.html). Do not treat its static sample values as runtime data. Angular binds the API response.
+The F2 visual baseline is [f2-income-allocation.html](../requirements/f2-income-allocation/f2-income-allocation.html). Do not treat its static sample values as runtime data. Angular binds the API response.
 
 | Reference element | Angular behavior | Data source |
 |---|---|---|
 | Back link | Navigate to `/monthly-planning` | UI navigation |
 | `Month Budget Summary` heading | Identify the selected period | Route/response year and month |
-| Month selector | Load the selected period through the shared GET endpoint | Route/API path |
+| Selected period | Load the year/month encoded in `/monthly-plans/:year/:month` through the shared GET endpoint | Route/API path |
 | Total-income summary | Format `monthlyIncomeVnd` as VND | Response |
 | `100% allocated` donut | Visualize the fixed seven rates; no client financial calculation | `jars[].percentage` |
 | Seven-item legend | Render seven canonical names/rates | `jars` |
@@ -177,7 +177,11 @@ The F2 visual baseline is [month-budget-summary.html](../requirements/f2-income-
 | Meter bars | Optional percentage-share accent only; never bind spent/progress data | `percentage` |
 | Responsive grid | Preserve readable cards and long names on narrow screens | UI layout |
 
+The visual reference includes a month selector, but F2 currently has no API to list saved plans. Plan-history browsing and its selector are deferred; the implemented page displays the route period only.
+
 F1's planning screen uses the same default-jar data but does not need to show allocated amounts before creation. F1's created-plan view and F2 may show backend `budgetVnd` because they use the shared read response. No `spent`, `remaining`, expense, or progress models may be added for these features.
+
+For F1 desktop layout, place **Plan details** and **Your default allocation** in a two-column grid with their panel tops aligned. The content width is capped at 1148px with a 48px horizontal inset; the form column is capped at 459px with a 19px column gap, and the allocation column fills the remainder. Stack the panels at 920px and narrower. The shared shell uses a centered 1440px maximum width, a 176px expanded sidebar, 12px icon-and-text navigation labels, slate inactive text, and blue active text. The allocation panel uses a **Fixed allocation** eyebrow above its title.
 
 ## 10. Loading, Empty, Error, and Success States
 
@@ -245,7 +249,7 @@ sequenceDiagram
 - [x] Implement create pending, duplicate, uncertain-network, and validation states.
 - [x] Add the shared plan route with year/month parsing and loading, retry, and not-found handling.
 - [x] Render F1 post-create income and jar budgets using backend values only.
-- [ ] Complete F2's HTML reference mapping, including its responsive allocation visualization, donut/legend, and percentage-share accents without adding spending-progress data.
+- [x] Complete F2's HTML reference mapping, including its responsive allocation visualization, donut/legend, and percentage-share accents without adding spending-progress data.
 
 ## 15. Parallel Development and Traceability
 
@@ -258,13 +262,14 @@ Frontend can use the DTOs and examples in [spec-f1-f2-backend.md](spec-f1-f2-bac
 | F1 post-create view | Navigate and load shared plan response |
 | F2 display seven allocations | Render names, rates, and backend budgets |
 | F2 missing plan | 404 empty state with F1 navigation |
+| F2 plan browsing | Deferred; there is no list endpoint or month selector in the route-based view |
 | BR-005 through BR-007 | No client financial calculation; backend values only |
 | BR-009 | Whole-VND digit strings and VND formatting |
 | F1/F2 out of scope | No rate editing, expense, spent, remaining, or progress UI |
 
 ## 16. Readiness
 
-**Frontend specification:** READY for mock-based implementation.  
-**API contract:** NOT FROZEN pending rounding-policy and requirement approval.  
-**F1/F2 contract:** SHARED through the common plan GET response.  
-**Blocking issues:** 2.
+- **Frontend specification:** F1 and the route-based F2 allocation view are implemented; plan-history browsing is deferred.
+- **API contract:** Shared F1/F2 read contract; the largest-remainder policy is approved.
+- **F1/F2 contract:** SHARED through the common plan GET response.
+- **Blocking issues:** None for the route-based F2 view. Plan-history browsing remains deferred.

@@ -3,13 +3,26 @@
 
   <header class="ff-app-header">
     <a class="ff-app-header__brand" [routerLink]="homeRoute" aria-label="Family Finance home">
-      <span class="ff-app-header__mark" aria-hidden="true">FF</span>
+      <span class="ff-app-header__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M4 5.5h16v13H4zM8 3v5m8-5v5M4 10h16"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="m8 14 2.3 2.3L16 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
       <span>{{ brandName }}</span>
     </a>
 
     <div class="ff-family-identity" [attr.aria-label]="familyName">
       <span>{{ familyName }}</span>
       <span class="ff-family-identity__avatar" aria-hidden="true">{{ familyInitials }}</span>
+      <svg class="ff-family-identity__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="m7 9 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </div>
   </header>
 
@@ -23,7 +36,37 @@
             routerLinkActive="ff-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: true }"
             ariaCurrentWhenActive="page">
-            {{ item.label }}
+            @if (item.icon) {
+              <span class="ff-navigation__icon" aria-hidden="true">
+                @switch (item.icon) {
+                  @case ('home') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linejoin="round" />
+                    </svg>
+                  }
+                  @case ('planning') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <rect x="3.5" y="5" width="17" height="15.5" rx="2" stroke="currentColor" stroke-width="1.8" />
+                      <path d="M7.5 3v4M16.5 3v4M4 9.5h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                  }
+                  @case ('expense') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 2.8v18.4M17 6.2c-.9-1-2.4-1.6-4.5-1.6-2.4 0-4 1.1-4 2.8 0 4.6 9.5 1.5 9.5 6.7 0 2-1.9 3.5-4.9 3.5-2 0-3.7-.6-5-1.8"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round" />
+                    </svg>
+                  }
+                }
+              </span>
+            }
+            <span>{{ item.label }}</span>
           </a>
         }
       </nav>

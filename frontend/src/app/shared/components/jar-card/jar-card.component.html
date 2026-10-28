@@ -75,21 +75,24 @@
     </span>
     <div class="ff-jar-card__identity">
       <h3>{{ name }}</h3>
+      @if (percentage !== null) {
+        <span class="ff-jar-card__percentage">{{ percentage }}%</span>
+      }
       @if (description) {
         <p>{{ description }}</p>
       }
     </div>
-    @if (percentage !== null) {
-      <span class="ff-jar-card__percentage">{{ percentage }}%</span>
-    }
   </div>
 
   @if (amountVnd !== null) {
     <div class="ff-jar-card__amount">
-      <span>{{ amountLabel }}</span>
+      @if (amountLabel) {
+        <span>{{ amountLabel }}</span>
+      }
       <strong>{{ amountVnd | vndAmount }}</strong>
     </div>
   }
 
+  <ng-content select="[jar-progress]" />
   <ng-content />
 </article>

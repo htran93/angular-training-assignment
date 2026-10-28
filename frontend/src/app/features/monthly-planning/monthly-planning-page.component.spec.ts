@@ -79,6 +79,12 @@ describe('MonthlyPlanningPageComponent', () => {
     expect(monthInput.value).toBe(expectedMonth);
     expect(fixture.nativeElement.querySelectorAll('.ff-jar-card')).toHaveLength(7);
     expect(fixture.nativeElement.textContent).toContain('100% allocated');
+    const introMark = fixture.nativeElement.querySelector('.f1-page__intro-mark') as HTMLElement;
+    expect(introMark.getAttribute('aria-hidden')).toBe('true');
+    expect(introMark.querySelector('svg path')).not.toBeNull();
+    const panelTitles = Array.from(fixture.nativeElement.querySelectorAll('.ff-panel__header h2')) as HTMLHeadingElement[];
+    expect(panelTitles.map(title => title.textContent?.trim())).toEqual(['Plan details', 'Your default allocation']);
+    expect(fixture.nativeElement.querySelector('.ff-panel__eyebrow')?.textContent?.trim()).toBe('Fixed allocation');
   });
 
   it('rejects comma-grouped income without changing it or posting a plan', () => {

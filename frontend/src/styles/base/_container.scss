@@ -4,11 +4,11 @@
 :host {
   // ── Shell ─────────────────────────────────────────────────
 
-  --shell-header-height: 3rem; // 48px
-  --shell-header-padding-inline: 1.25rem; // 20px
+  --shell-header-height: 3.75rem; // 60px
+  --shell-header-padding-inline: 0rem;
 
   --shell-header-side-width: 12.5rem; // 200px
-  --shell-header-action-size: 3rem; // 48px
+  --shell-header-action-size: 2rem; // 32px
   --shell-header-icon-size: 1.25rem; // 20px
 
   --shell-body-padding: 0.75rem; // 12px
@@ -24,21 +24,21 @@
 
   // ── Sidebar ───────────────────────────────────────────────
 
-  --sidebar-expanded-width: 15.625rem; // 250px
+  --sidebar-expanded-width: 11rem; // 176px
   --sidebar-collapsed-width: 4.375rem; // 70px
   --sidebar-collapsed-content-width: 3.125rem; // 50px
 
-  --sidebar-padding-inline: 0.625rem; // 10px
-  --sidebar-padding-block: 2rem; // 32px
+  --sidebar-padding-inline: 0.5rem; // 8px
+  --sidebar-padding-block: 1rem; // 16px
 
-  --sidebar-navigation-gap: 0.25rem; // 4px
+  --sidebar-navigation-gap: 0.5625rem; // 9px
 
-  --sidebar-item-height: 2.5rem; // 40px
-  --sidebar-item-padding-inline: 1rem; // 16px
-  --sidebar-item-padding-block: 0.5rem; // 8px
-  --sidebar-item-gap: 0.5rem; // 8px
+  --sidebar-item-height: 2.375rem; // 38px
+  --sidebar-item-padding-inline: 1.1875rem; // 19px
+  --sidebar-item-padding-block: 0;
+  --sidebar-item-gap: 0.75rem; // 12px
 
-  --sidebar-icon-size: 1.125rem; // 18px
+  --sidebar-icon-size: 1.0625rem; // 17px
   --sidebar-collapse-button-size: 2.5rem; // 40px
 
   --sidebar-child-guide-width: 0.0625rem; // 1px

@@ -10,11 +10,11 @@ The shared layer provides layout and presentation primitives only. It does not i
 
 | Component | Selector | Responsibility |
 |---|---|---|
-| App shell | `app-app-shell` | Family Finance header, family identity placeholder, primary navigation, skip link, sidebar, and projected page content. |
+| App shell | `app-app-shell` | Family Finance header with a calendar-check brand mark, family identity placeholder, icon-and-label primary navigation, skip link, sidebar, and projected page content. |
 | Button primitive | `.ff-button` | Shared primary and secondary action styles. Use native `<button>` or `<a>` elements so keyboard and disabled behavior remains semantic. |
 | Month selector | `app-month-selector` | Accessible native select for a supplied list of `YYYY-MM` periods. The caller decides whether options mean all months or only months with saved plans. |
-| Panel | `app-panel` | Named, titled content region with optional projected `[panel-actions]`. |
-| Jar card | `app-jar-card` | Consistent jar accent, built-in decorative icon by jar type, name, percentage, optional guidance, and optional whole-VND amount. An optional `[jar-icon]` projection overrides the default icon. |
+| Panel | `app-panel` | Named, titled content region with an optional eyebrow and projected `[panel-actions]`. |
+| Jar card | `app-jar-card` | Consistent jar accent, built-in decorative icon stacked above the name and percentage, optional guidance, and optional whole-VND amount. `[jar-icon]` overrides the icon; `[jar-progress]` projects a visual indicator inside the card. |
 | Metric card | `app-metric-card` | Label/value/detail block for income, spending, and balance summaries. Values are display strings, not calculated here. |
 | Progress bar | `app-progress-bar` | Accessible visual progress indicator. It caps only the visual fill and ARIA numeric value; `valueText` preserves the full supplied value. |
 | Form field | `app-form-field` | Label, required marker, help text, error announcement, and control description IDs. |
@@ -22,7 +22,7 @@ The shared layer provides layout and presentation primitives only. It does not i
 | State panel | `app-state-panel` | Empty, error, loading, or unavailable message with an optional projected `[state-action]`. |
 | VND amount pipe | `vndAmount` | Adds grouping separators and `VND` to a digit string without converting it to `number`. Negative digit strings are supported for over-budget balances. |
 
-Shared app navigation defaults to Home (`/dashboard`), Planning (`/monthly-planning`), and Add Expense (`/expenses/new`). Supply a different `navigationItems` input if a page has a different navigation contract.
+Shared app navigation defaults to Home (`/dashboard`), Planning (`/monthly-planning`), and Add Expense (`/expenses/new`), each with an optional decorative inline icon. Supply a different `navigationItems` input if a page has a different navigation contract.
 
 ## Usage examples
 
@@ -85,8 +85,10 @@ Each `MonthOption` has a `value` in `YYYY-MM` format and a display `label`. Do n
   jarType="food"
   name="Food"
   [percentage]="20"
-  amountLabel="Budget"
-  amountVnd="5000000" />
+  amountLabel=""
+  amountVnd="5000000">
+  <span jar-progress aria-hidden="true">...</span>
+</app-jar-card>
 
 <app-metric-card
   label="Remaining balance"
@@ -115,6 +117,9 @@ Use `.ff-button ff-button--primary` for a primary action and `.ff-button ff-butt
 - **Form validation:** `app-form-field` exposes `describedBy` for the projected control. Bind that value to the control’s `aria-describedby`; pass `required` and `invalid` to custom/native inputs as appropriate.
 - **Period selection:** `app-month-selector` does not generate years or infer available plans. Feature services supply the options.
 - **Jar identity:** `JarType` is the canonical API-key union in `src/app/shared/models/jar-type.ts`. Jar names and monetary calculations should still come from the API.
+- **Panel heading:** `app-panel` keeps its accessible title and may show a short eyebrow above it.
+- **Jar card sizing:** `.ff-jar-card` fills its `app-jar-card` host. Feature layouts can tune `--ff-jar-card-min-height`, `--ff-jar-card-padding`, `--ff-jar-card-marker-size`, and related `--ff-jar-card-*` properties; F1 uses a `9.0625rem` minimum height and F2 uses `10.5rem`.
+- **Jar progress:** The optional `[jar-progress]` projection renders inside the card after its amount. Set `amountLabel` to an empty string when the amount should be shown without a label.
 - **Progress:** A percentage above 100 may be shown in `valueText`; only visual fill and `aria-valuenow` are capped. Include a textual over-budget status rather than relying on color.
 - **State panels:** Errors use `role="alert"`; other states use `role="status"`. Add a keyboard-accessible link or button using the `[state-action]` slot.
 - **Navigation identity:** The family name/initials are presentation placeholders; they do not imply authentication or account functionality.
@@ -128,7 +133,7 @@ The component styles reuse the existing tokens in `frontend/src/styles/base/` an
 - Jar colors and tints use the existing `--f1-jar-*` variables.
 - Typography uses the existing Mulish aliases `--font-body`, `--font-heading`, and `--font-sans`.
 - Responsive rules reuse the existing breakpoint tokens and mixins.
-- Buttons, cards, and form controls use the square radius token and the feature-capture focus ring.
+- Buttons and form controls use the existing radius tokens and feature-capture focus ring. Feature cards may override the base square radius when their reference calls for rounded corners.
 
 The feature HTML shares the FamilyFinance label, Mulish font, jar palette, and breakpoint tokens. Do not copy component markup or embedded styles from an individual feature file. The NashTech Notes brand guideline is specific to its documented monthly-planning capture and should not override the shared feature captures without a product decision.
 

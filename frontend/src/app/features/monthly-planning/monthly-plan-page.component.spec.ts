@@ -70,11 +70,68 @@ describe('MonthlyPlanPageComponent', () => {
     http.expectOne(BUDGET_PLAN_ENDPOINTS.BY_PERIOD(2026, 9)).flush(monthlyPlanResponse);
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Month Budget Summary');
     expect(fixture.nativeElement.textContent).toContain('25,000,000 VND');
     expect(fixture.nativeElement.querySelectorAll('.ff-jar-card')).toHaveLength(7);
     expect(fixture.nativeElement.textContent).toContain('8,750,000 VND');
+    expect(fixture.nativeElement.querySelectorAll('.ff-jar-card__amount > span')).toHaveLength(0);
     expect(fixture.nativeElement.textContent).not.toContain('Spent');
     expect(fixture.nativeElement.textContent).not.toContain('Remaining');
+    const segments = Array.from(
+      fixture.nativeElement.querySelectorAll('.monthly-plan-page__donut-segment') as NodeListOf<SVGCircleElement>
+    );
+    expect(segments.map(segment => segment.getAttribute('data-jar-type'))).toEqual([
+      'livingExpenses',
+      'food',
+      'children',
+      'emergencyFund',
+      'savings',
+      'investment',
+      'entertainmentAndTravel'
+    ]);
+    expect(
+      Array.from(fixture.nativeElement.querySelectorAll('.monthly-plan-page__legend-name') as NodeListOf<HTMLElement>)
+        .map(name => name.textContent?.trim())
+    ).toEqual([
+      'Living Expenses',
+      'Food',
+      'Children',
+      'Emergency Fund',
+      'Savings',
+      'Investment',
+      'Entertainment & Travel'
+    ]);
+    expect(
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.monthly-plan-page__legend-percentage') as NodeListOf<HTMLElement>
+      ).map(percentage => percentage.textContent?.trim())
+    ).toEqual(['35%', '20%', '10%', '10%', '10%', '10%', '5%']);
+    expect(
+      Array.from(fixture.nativeElement.querySelectorAll('.monthly-plan-page__share-fill') as NodeListOf<HTMLElement>)
+        .map(fill => fill.style.width)
+    ).toEqual(['35%', '20%', '10%', '10%', '10%', '10%', '5%']);
+    const jarCards = Array.from(fixture.nativeElement.querySelectorAll('.ff-jar-card') as NodeListOf<HTMLElement>);
+    expect(jarCards.every(card => card.querySelector('.monthly-plan-page__share-track') !== null)).toBe(true);
+    expect((fixture.nativeElement.querySelector('.monthly-plan-page__donut') as HTMLElement).getAttribute('aria-label'))
+      .toBe('100 percent allocated across seven jars');
+  });
+
+  it('renders API budget amounts without recalculating them from income or rates', () => {
+    const fixture = TestBed.createComponent(MonthlyPlanPageComponent);
+    fixture.detectChanges();
+    const responseWithDistinctBudgets = {
+      ...monthlyPlanResponse,
+      monthlyIncomeVnd: '100',
+      jars: monthlyPlanResponse.jars.map((jar, index) => ({ ...jar, budgetVnd: String(index + 1) }))
+    };
+    http.expectOne(BUDGET_PLAN_ENDPOINTS.BY_PERIOD(2026, 9)).flush(responseWithDistinctBudgets);
+    fixture.detectChanges();
+
+    const displayedBudgets = Array.from(
+      fixture.nativeElement.querySelectorAll('.ff-jar-card__amount strong') as NodeListOf<HTMLElement>
+    ).map(amount => amount.textContent?.trim());
+
+    expect(displayedBudgets).toEqual(['1 VND', '2 VND', '3 VND', '4 VND', '5 VND', '6 VND', '7 VND']);
   });
 
   it('shows a not-found state and a create-plan link when no saved plan exists', () => {

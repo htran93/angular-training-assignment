@@ -8,4 +8,5 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 })
 export class PanelComponent {
   @Input({ required: true }) title!: string;
+  @Input() eyebrow = '';
 }

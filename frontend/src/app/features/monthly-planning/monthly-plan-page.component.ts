@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, Subject, catchError, map, of, switchMap, take } from 'rxjs';
@@ -9,6 +9,7 @@ import { JarCardComponent } from '../../shared/components/jar-card/jar-card.comp
 import { MetricCardComponent } from '../../shared/components/metric-card/metric-card.component';
 import { PanelComponent } from '../../shared/components/panel/panel.component';
 import { StatePanelComponent } from '../../shared/components/state-panel/state-panel.component';
+import { JarType } from '../../shared/models/jar-type';
 import { VndAmountPipe } from '../../shared/pipes/vnd-amount.pipe';
 import { BudgetPlanApiService } from './data-access/budget-plan-api.service';
 import {
@@ -19,6 +20,12 @@ import {
 interface PlanPeriod {
   year: number;
   month: number;
+}
+
+interface AllocationSegment {
+  jarType: JarType;
+  percentage: number;
+  offset: number;
 }
 
 type PlanLoadResult =
@@ -68,6 +75,14 @@ function apiErrorCode(value: unknown): string | null {
 export class MonthlyPlanPageComponent implements OnInit {
   readonly state = signal<PlanPageState>('loading');
   readonly plan = signal<MonthlyPlanResponse | null>(null);
+  readonly allocationSegments = computed<AllocationSegment[]>(() => {
+    let offset = 0;
+    return (this.plan()?.jars ?? []).map(jar => {
+      const segment = { jarType: jar.jarType, percentage: jar.percentage, offset };
+      offset += jar.percentage;
+      return segment;
+    });
+  });
   readonly period = signal<PlanPeriod | null>(null);
   readonly monthLabel = signal('');
 

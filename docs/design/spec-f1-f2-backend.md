@@ -241,7 +241,7 @@ F2 and F1 read-back use `AsNoTracking()`, load the plan with allocations in one 
 - [ ] Verify F1 creates seven allocations and F2 reads the same response without a second API/calculation path.
 - [ ] Keep expenses, spent/remaining, progress, and editing out of this scope.
 
-**Backend specification:** READY for implementation design.  
-**API contract:** NOT FROZEN pending rounding-policy and requirement approval.  
-**F1/F2 contract:** SHARED; no separate F2 allocation endpoint.  
-**Blocking issues:** 2.
+- **Backend specification:** READY for implementation design.
+- **API contract:** The F1/F2 endpoints and largest-remainder policy are specified; broader source-requirement review remains separate.
+- **F1/F2 contract:** SHARED; no separate F2 allocation endpoint.
+- **Blocking issues:** None for the shared F1/F2 API contract; source-requirement review is separate.

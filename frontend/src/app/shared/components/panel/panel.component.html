@@ -1,6 +1,11 @@
 <section class="ff-panel" role="region" [attr.aria-label]="title">
   <header class="ff-panel__header">
-    <h2>{{ title }}</h2>
+    <div class="ff-panel__heading">
+      @if (eyebrow) {
+        <p class="ff-panel__eyebrow">{{ eyebrow }}</p>
+      }
+      <h2>{{ title }}</h2>
+    </div>
     <ng-content select="[panel-actions]" />
   </header>
   <div class="ff-panel__content">

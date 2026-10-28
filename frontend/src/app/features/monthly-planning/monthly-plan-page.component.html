@@ -1,13 +1,11 @@
 <app-app-shell>
   <div class="monthly-plan-page">
     <nav class="monthly-plan-page__breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/monthly-planning">Monthly planning</a>
-      <span aria-hidden="true">/</span>
-      <span aria-current="page">{{ monthLabel() || 'Monthly plan' }}</span>
+      <a routerLink="/monthly-planning">Back to monthly planning</a>
     </nav>
 
     <header class="monthly-plan-page__intro">
-      <h1>Monthly plan</h1>
+      <h1>Month Budget Summary</h1>
       @if (monthLabel()) {
         <p>{{ monthLabel() }}</p>
       }
@@ -42,14 +40,51 @@
       </app-state-panel>
     } @else if (plan(); as savedPlan) {
       <div class="monthly-plan-page__content">
-        <section class="monthly-plan-page__income" aria-label="Monthly income summary">
+        <section class="monthly-plan-page__summary" aria-label="Monthly budget summary">
           <app-metric-card
             label="Total monthly income"
             [value]="savedPlan.monthlyIncomeVnd | vndAmount"
             [detail]="monthLabel()" />
+
+          <div class="monthly-plan-page__allocation-visualization">
+            <div class="monthly-plan-page__donut" role="img" aria-label="100 percent allocated across seven jars">
+              <svg class="monthly-plan-page__donut-chart" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="monthly-plan-page__donut-track" cx="50" cy="50" r="40" pathLength="100" />
+                @for (segment of allocationSegments(); track segment.jarType) {
+                  <circle
+                    class="monthly-plan-page__donut-segment monthly-plan-page__jar-color"
+                    [attr.data-jar-type]="segment.jarType"
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    pathLength="100"
+                    [attr.stroke-dasharray]="segment.percentage + ' 100'"
+                    [attr.stroke-dashoffset]="-segment.offset" />
+                }
+              </svg>
+              <span class="monthly-plan-page__donut-label" aria-hidden="true">
+                <strong>100%</strong>
+                <span>allocated</span>
+              </span>
+            </div>
+
+            <ul class="monthly-plan-page__legend" aria-label="Jar allocation legend">
+              @for (jar of savedPlan.jars; track jar.jarType) {
+                <li>
+                  <span
+                    class="monthly-plan-page__legend-swatch monthly-plan-page__jar-color"
+                    [attr.data-jar-type]="jar.jarType"
+                    aria-hidden="true"></span>
+                  <span class="monthly-plan-page__legend-name">{{ jar.name }}</span>
+                  <span class="monthly-plan-page__legend-percentage">{{ jar.percentage }}%</span>
+                </li>
+              }
+            </ul>
+          </div>
         </section>
 
-        <app-panel title="Your seven jars">
+        <app-panel title="The Seven Jars">
+          <p class="monthly-plan-page__jar-intro">Your income is allocated to 7 jars based on the default rates.</p>
           <ul class="monthly-plan-page__jar-grid" aria-label="Monthly jar budgets">
             @for (jar of savedPlan.jars; track jar.jarType) {
               <li>
@@ -57,7 +92,15 @@
                   [jarType]="jar.jarType"
                   [name]="jar.name"
                   [percentage]="jar.percentage"
-                  [amountVnd]="jar.budgetVnd" />
+                  [amountVnd]="jar.budgetVnd"
+                  amountLabel="">
+                  <span jar-progress class="monthly-plan-page__share-track" aria-hidden="true">
+                    <span
+                      class="monthly-plan-page__share-fill monthly-plan-page__jar-color"
+                      [attr.data-jar-type]="jar.jarType"
+                      [style.width.%]="jar.percentage"></span>
+                  </span>
+                </app-jar-card>
               </li>
             }
           </ul>

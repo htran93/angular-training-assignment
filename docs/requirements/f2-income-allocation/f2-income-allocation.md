@@ -7,6 +7,7 @@
 - **Feature:** F2 - Allocate income to seven jars
 - **Priority:** Must
 - **Status:** Draft
+- **Implementation status:** Route-based allocation view implemented; browsing all saved plans is deferred.
 - **Primary actor:** Family finance user
 - **Source:** `docs/requirements/monthly-income-allocation.md`, `docs/knowledge/domain.md`
 - **Dependency:** F1 - Monthly planning
@@ -35,7 +36,7 @@
 3. The backend calculates each jar budget using `monthly income x allocation percentage / 100` and applies the approved whole-VND precision policy.
 4. The user sees the seven jar names, rates, and calculated budget amounts in VND.
 
-**Mockup/wireframe:** TBD. The F1 story notes that detailed jar amounts belong to F2, but no F2-specific visual specification is available.
+**Visual reference:** [f2-income-allocation.html](f2-income-allocation.html). Its example income and amounts are illustrative; runtime values come from the selected plan response.
 
 ## Acceptance Criteria
 
@@ -55,8 +56,9 @@ And the system displays the jar's allocation rate with its amount
 ```gherkin
 Given the monthly income is a
 And the plan uses the predefined rates
-When the user views the plan
-Then each jar shows a*predefined rate VND
+When the backend allocates the income across the seven jars
+Then each jar budget is a whole-VND amount following BR-007's approved largest-remainder policy
+And the seven whole-VND jar budgets sum exactly to the monthly income
 ```
 
 ### AC3: Do not show calculated amounts without a monthly plan
@@ -77,17 +79,31 @@ Then the displayed amounts are the amounts calculated by the backend
 And the frontend does not substitute independently calculated amounts
 ```
 
+### AC5: Show the allocation summary
+
+```gherkin
+Given a monthly plan exists with seven jars
+When the user views the plan
+Then the view shows the monthly income and a visual summary of the seven allocation rates
+And it shows a seven-item legend and one budget card per jar
+And any percentage-share accent represents the allocation rate, not spending or progress
+```
+
 ## Out of Scope
 
 - Creating a monthly plan or changing monthly income; covered by F1.
 - Editing jar names, adding or removing jars, or changing allocation rates.
 - Recording, editing, or deleting expenses; covered by F3 and F4.
 - Displaying spent amounts, remaining balances, or progress; covered by F5.
+- Browsing or listing all saved monthly plans. F2 currently uses the year/month in its route; a plan-history selector is deferred.
 
 ## Non-Functional Requirements
 
 - Currency is VND and monetary amounts are whole VND values.
 - The backend is the source of truth for financial calculations.
+- The allocation view includes an income summary, a seven-jar allocation visualization, and seven jar budget cards; percentage-share accents do not represent spending or progress.
+- The layout remains readable and operable at desktop, tablet, and mobile widths without unintended horizontal scrolling.
+- The allocation visualization and jar list provide accessible names and do not rely on color alone to convey values.
 - No response-time or availability threshold is specified in the source requirements.
 
 ## Traceability
@@ -103,11 +119,9 @@ And the frontend does not substitute independently calculated amounts
 
 ## Open Questions
 
-- **Business/finance:** What rounding mode and remainder-allocation rule should be used when the formula produces fractional VND amounts? This affects BR-007, which requires whole-VND jar budgets to sum exactly to income.
-- **Requirements consistency:** Should the architecture be updated to match the seven jars in the current feature requirement and domain rules? `docs/design/architecture.md` currently describes a different five-jar model.
-- **UX:** Where should the user land after opening a plan, and should the F2 allocation view have a dedicated wireframe?
+- **Deferred UX:** Should users be able to browse all saved plans from F2? This requires a plan-list API and is intentionally deferred; it does not block viewing a plan by route period.
 
 ## Readiness Check
 
-- **INVEST:** Independent after F1 creates a plan; valuable for understanding category budgets; estimable once financial precision is settled; small and demonstrable; acceptance criteria are testable for whole-VND results.
-- **Definition of Ready:** Drafted with role, value, priority, dependency, assumptions, scope, acceptance criteria, NFRs, and traceability. **Not ready for implementation contract freeze** until the architecture mismatch and rounding/remainder policy are resolved.
+- **INVEST:** Independent after F1 creates a plan; valuable for understanding category budgets; estimable under the approved financial precision policy; small and demonstrable; acceptance criteria are testable for whole-VND results.
+- **Definition of Ready:** The route-period behavior, seven-jar model, backend response, and whole-VND remainder policy are specified. Plan-history browsing remains deferred and is outside this implementation.

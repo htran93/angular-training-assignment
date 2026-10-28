@@ -1,13 +1,32 @@
 <app-app-shell>
   <div class="f1-page">
     <nav class="f1-breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/dashboard">Home</a>
+      <a routerLink="/dashboard" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round" />
+        </svg>
+      </a>
       <span aria-hidden="true">/</span>
-      <span aria-current="page">Monthly planning</span>
+      <a routerLink="/monthly-planning">Monthly planning</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Create monthly plan</span>
     </nav>
 
     <header class="f1-page__intro">
-      <span class="f1-page__intro-mark" aria-hidden="true">₫</span>
+      <span class="f1-page__intro-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 3 4.5 6v5.4c0 4.5 3.2 7.8 7.5 9.6 4.3-1.8 7.5-5.1 7.5-9.6V6L12 3Z"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round" />
+          <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
       <div>
         <h1>Create your monthly budget</h1>
         <p>Set your income for a month and we will prepare your seven budgeting jars.</p>
@@ -30,7 +49,7 @@
       </app-state-panel>
     } @else if (defaultJars(); as defaults) {
       <div class="f1-page__content">
-        <app-panel title="Plan details">
+        <app-panel class="f1-page__plan-panel" title="Plan details">
           <form class="f1-plan-form" [formGroup]="form" novalidate (ngSubmit)="submit()">
             <app-form-field
               #monthField
@@ -87,13 +106,12 @@
           </form>
         </app-panel>
 
-        <app-panel title="Your default allocation">
-          <div class="f1-allocation-heading">
-            <p>These rates are fixed for your first monthly plan.</p>
-            <span class="f1-allocation-heading__total">
-              <span aria-hidden="true">✓</span> {{ defaults.totalPercentage }}% allocated
-            </span>
-          </div>
+        <app-panel class="f1-page__allocation-panel" title="Your default allocation" eyebrow="Fixed allocation">
+          <span panel-actions class="f1-allocation-heading__total">
+            <span class="f1-allocation-heading__check" aria-hidden="true">✓</span>
+            {{ defaults.totalPercentage }}% allocated
+          </span>
+          <p class="f1-allocation-copy">These rates are fixed for your first monthly plan.</p>
 
           <ul class="f1-jar-grid" aria-label="Default jar allocation">
             @for (jar of defaults.jars; track jar.jarType) {
