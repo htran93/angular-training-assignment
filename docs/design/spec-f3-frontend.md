@@ -14,7 +14,7 @@ F3 is limited to creating one expense. Editing/deleting expenses, recurring or s
 
 The authoritative backend contract is [spec-f3-backend.md](spec-f3-backend.md). This specification follows [F3 requirements](../requirements/f3-add-expenses/f3-add-expenses.md), [domain rules](../knowledge/domain.md), and [architecture](architecture.md).
 
-The visual reference is [adding-expenses.html](../requirements/f3-add-expenses/adding-expenses.html). It shows:
+The visual reference is [f3-add-expenses.html](../requirements/f3-add-expenses/f3-add-expenses.html). It shows:
 
 - a page titled **Add an expense**;
 - an **Expense details** form with date, jar, amount, description, and **Save expense** action;
@@ -131,8 +131,6 @@ No new state-management framework is needed. Do not calculate budget, spent, or 
 ```typescript
 getMonthlyPlan(year: number, month: number): Observable<MonthlyPlanResponse>
 createExpense(
-  year: number,
-  month: number,
   request: CreateExpenseRequest
 ): Observable<CreateExpenseResponse>
 ```
@@ -173,7 +171,7 @@ The frontend may validate the plan response shape before populating the jar sele
 
 ## 8. Visual and Interaction Contract
 
-Implement the structure shown in [adding-expenses.html](../requirements/f3-add-expenses/adding-expenses.html):
+Implement the structure shown in [f3-add-expenses.html](../requirements/f3-add-expenses/f3-add-expenses.html):
 
 | Visual element | Angular behavior |
 |---|---|
@@ -200,7 +198,7 @@ The layout must remain usable on narrow screens: stack the form and selected-jar
 - **Submitting:** disable save, preserve inputs, and indicate progress.
 - **Created:** show success confirmation, clear or retain the form according to the page convention, and render the returned selected-jar totals.
 - **Validation error:** show field-level messages and keep all entered values.
-- **Date outside month:** show a specific date message and keep the selected date.
+- **Date/plan month:** the expense date determines the plan month; there is no separately selected month against which the date must be checked.
 - **Jar membership error:** reload the plan and require a valid current jar selection.
 - **Network/server error:** show a generic retry message without fabricated totals.
 - **Overspent jar:** display negative remaining as a valid backend result; do not block save or replace it with zero.
@@ -247,14 +245,14 @@ sequenceDiagram
 
 ## 13. Frontend Tasks
 
-- [ ] Add F3 request/response models and typed service methods.
-- [ ] Add the route and load the existing monthly plan before enabling the form.
-- [ ] Build the date, jar, amount, and description form from the visual reference.
-- [ ] Implement whole-VND string normalization and client validation.
-- [ ] Implement loading, missing-plan, pending, validation, success, and retry states.
-- [ ] Render selected-jar name/rate and backend returned spent/remaining totals.
-- [ ] Add responsive layout and accessible labels/live feedback.
-- [ ] Keep editing/deleting expenses and dashboard/progress behavior out of F3.
+- [x] Add F3 request/response models and typed service methods.
+- [x] Add the route and load the existing monthly plan before enabling the form.
+- [x] Build the date, jar, amount, and description form from the visual reference.
+- [x] Implement whole-VND string normalization and client validation.
+- [x] Implement loading, missing-plan, pending, validation, success, and retry states.
+- [x] Render selected-jar name/rate and backend returned spent/remaining totals.
+- [x] Add responsive layout and accessible labels/live feedback.
+- [x] Keep editing/deleting expenses and dashboard/progress behavior out of F3.
 
 ## 14. Parallel Development and Traceability
 
@@ -274,6 +272,6 @@ Frontend can mock `GET /budget-plans/{year}/{month}` and `POST /budget-plans/exp
 
 F3 frontend is complete when a user can open an existing plan, select one of its seven jars, enter a valid date/amount/description, submit exactly one expense, see confirmation and backend-calculated selected-jar totals, and recover from all defined validation/missing-plan/server states without fabricated values.
 
-**Frontend specification:** READY for mock-based implementation.  
-**API contract:** READY for F3 create implementation.  
-**Blocking issues:** 0 for the defined F3 create scope.
+**Frontend specification:** IMPLEMENTED against the date-derived plan/API flow.
+**API contract:** IMPLEMENTED and used by the frontend.
+**Plan-month behavior:** Confirmed as date-driven; the expense date determines which monthly plan and jars are available.

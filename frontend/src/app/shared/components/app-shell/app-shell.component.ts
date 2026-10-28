@@ -20,6 +20,7 @@ export class AppShellComponent {
   @Input() brandName = 'Family Finance';
   @Input() familyName = 'Family Name';
   @Input() familyInitials = 'FN';
+  @Input() headerContext = '';
   @Input() homeRoute = '/dashboard';
   @Input() navigationItems: readonly NavigationItem[] = DEFAULT_NAVIGATION_ITEMS;
 }

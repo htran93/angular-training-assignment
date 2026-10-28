@@ -1,0 +1,187 @@
+<app-app-shell headerContext="Expenses">
+  <div class="f3-page">
+    <nav class="f3-breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/monthly-planning" aria-label="Back to monthly planning">
+        <span aria-hidden="true">←</span>
+        Back to monthly planning
+      </a>
+    </nav>
+
+    <header class="f3-page__intro">
+      <h1>Add an expense</h1>
+      <p>Record a purchase and assign it to the right jar in your monthly plan.</p>
+    </header>
+
+    <div class="f3-page__layout">
+      <app-panel title="Expense details" class="f3-page__details-panel">
+        <form class="f3-expense-form" [formGroup]="form" novalidate (ngSubmit)="submit()">
+          <p class="f3-expense-form__intro">Choose a jar and enter the expense information.</p>
+
+          @if (planState() === 'idle') {
+            <p class="f3-plan-notice" role="status">Choose an expense date to load the jars from that monthly plan.</p>
+          } @else if (planState() === 'loading') {
+            <p class="f3-plan-notice" role="status" aria-live="polite">Loading the monthly plan for this date…</p>
+          } @else if (planState() === 'missing') {
+            <app-state-panel
+              variant="empty"
+              title="Monthly plan required"
+              [message]="planError() ?? 'Create a monthly plan before adding an expense.'">
+              <a state-action class="ff-button ff-button--secondary" routerLink="/monthly-planning">Create a monthly plan</a>
+            </app-state-panel>
+          } @else if (planState() === 'error' || planState() === 'invalid') {
+            <app-state-panel
+              variant="error"
+              title="Monthly plan unavailable"
+              [message]="planError() ?? 'We could not load this monthly plan.'">
+              <button state-action class="ff-button ff-button--secondary" type="button" (click)="retryPlan()">
+                Try again
+              </button>
+            </app-state-panel>
+          }
+
+          <app-form-field
+            #dateField
+            controlId="expense-date"
+            label="Expense date"
+            [required]="true"
+            helpText="The date determines which monthly plan and jars are available."
+            [errorMessage]="expenseDateErrorMessage">
+            <input
+              #expenseDateInput
+              class="ff-input f3-expense-form__date"
+              id="expense-date"
+              type="date"
+              required
+              formControlName="expenseDate"
+              [attr.aria-invalid]="expenseDateErrorMessage ? 'true' : null"
+              [attr.aria-describedby]="dateField.describedBy" />
+          </app-form-field>
+
+          <app-form-field
+            #jarField
+            controlId="expense-jar"
+            label="Jar"
+            [required]="true"
+            helpText="Select a jar from the plan for this expense date."
+            [errorMessage]="jarTypeErrorMessage">
+            <div class="f3-expense-form__select-wrap">
+              <select
+                #jarSelect
+                class="ff-select"
+                id="expense-jar"
+                required
+                formControlName="jarType"
+                [attr.aria-invalid]="jarTypeErrorMessage ? 'true' : null"
+                [attr.aria-describedby]="jarField.describedBy">
+                <option [ngValue]="null">Select a jar</option>
+                @for (jar of plan()?.jars ?? []; track jar.jarType) {
+                  <option [ngValue]="jar.jarType">{{ jar.name }} ({{ jar.percentage }}%)</option>
+                }
+              </select>
+              <span class="f3-expense-form__select-chevron" aria-hidden="true"></span>
+            </div>
+          </app-form-field>
+
+          <app-form-field
+            #amountField
+            controlId="expense-amount"
+            label="Amount"
+            [required]="true"
+            helpText="Enter a positive whole-VND amount."
+            [errorMessage]="amountErrorMessage">
+            <app-vnd-amount-input
+              inputId="expense-amount"
+              placeholder="Enter amount"
+              [groupThousands]="true"
+              [required]="true"
+              [invalid]="!!amountErrorMessage"
+              [describedBy]="amountField.describedBy"
+              formControlName="amountVnd" />
+          </app-form-field>
+
+          <app-form-field
+            #descriptionField
+            controlId="expense-description"
+            label="Description"
+            [required]="true"
+            helpText="Describe what this expense was for (up to 500 characters)."
+            [errorMessage]="descriptionErrorMessage">
+            <textarea
+              #descriptionInput
+              class="ff-input f3-expense-form__description"
+              id="expense-description"
+              rows="3"
+              required
+              formControlName="description"
+              placeholder="Add a short description"
+              [attr.aria-invalid]="descriptionErrorMessage ? 'true' : null"
+              [attr.aria-describedby]="descriptionField.describedBy"></textarea>
+            <span class="f3-expense-form__counter" aria-live="polite">{{ descriptionLength }} / 500</span>
+          </app-form-field>
+
+          @if (submitError()) {
+            <p class="f3-submit-error" role="alert">{{ submitError() }}</p>
+          }
+          @if (saveSuccess()) {
+            <p class="f3-submit-success" role="status" aria-live="polite">{{ saveSuccess() }}</p>
+          }
+
+          <button
+            class="ff-button ff-button--primary f3-expense-form__submit"
+            type="submit"
+            [disabled]="isSubmitting() || planState() !== 'ready'">
+            @if (isSubmitting()) {
+              Saving…
+            } @else {
+              <span aria-hidden="true">✓</span> Save expense
+            }
+          </button>
+        </form>
+      </app-panel>
+
+      <app-panel title="Selected jar" class="f3-page__summary-panel">
+        <div class="f3-summary-content">
+          <p class="f3-panel-copy">Assigned to this expense</p>
+          @if (selectedJar(); as jar) {
+            <app-jar-card
+              class="f3-selected-jar"
+              [jarType]="jar.jarType"
+              [name]="jar.name"
+              [percentage]="jar.percentage" />
+
+            <dl class="f3-jar-totals" aria-label="Selected jar totals">
+              <div>
+                <dt>Budget</dt>
+                <dd>{{ (spendingSummary()?.budgetVnd ?? jar.budgetVnd) | vndAmount }}</dd>
+              </div>
+              @if (spendingSummary(); as totals) {
+                <div>
+                  <dt>Spent</dt>
+                  <dd>{{ totals.spentVnd | vndAmount }}</dd>
+                </div>
+                <div>
+                  <dt>{{ totals.remainingVnd.startsWith('-') ? 'Remaining (overspent)' : 'Remaining' }}</dt>
+                  <dd>{{ totals.remainingVnd | vndAmount }}</dd>
+                </div>
+              }
+            </dl>
+          } @else {
+            <div class="f3-selected-jar-empty" role="status">
+              <strong>Select a jar</strong>
+              <span>Choose an expense date and jar to see its summary.</span>
+            </div>
+          }
+
+          <p class="f3-refresh-note">Jar spending totals refresh after the expense is saved.</p>
+          @if (spendingSummary(); as totals) {
+            <a
+              class="ff-button ff-button--secondary f3-view-plan"
+              [routerLink]="['/monthly-plans', plan()?.year, plan()?.month]">
+              View monthly plan
+            </a>
+          }
+        </div>
+      </app-panel>
+    </div>
+  </div>
+</app-app-shell>

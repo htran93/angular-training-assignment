@@ -31,7 +31,7 @@ This specification follows:
 - [F3 requirements](../requirements/f3-add-expenses/f3-add-expenses.md)
 - [domain rules](../knowledge/domain.md)
 - [architecture](architecture.md)
-- the visual reference [adding-expenses.html](../requirements/f3-add-expenses/adding-expenses.html)
+- the visual reference [f3-add-expenses.html](../requirements/f3-add-expenses/f3-add-expenses.html)
 
 The HTML is a visual reference only. Its sample date, Food selection, and `1,250,000` amount are not seeded data or API defaults. The UI labels map to `expenseDate`, `jarType`, `amountVnd`, and `description` in the request contract.
 

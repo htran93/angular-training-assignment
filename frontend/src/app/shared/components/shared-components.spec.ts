@@ -69,6 +69,19 @@ describe('shared components', () => {
     expect(fixture.nativeElement.querySelector('#ff-main-content')).not.toBeNull();
   });
 
+  it('renders an optional header context without changing the default shell', async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppShellComponent],
+      providers: [provideRouter([])]
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(AppShellComponent);
+    fixture.componentRef.setInput('headerContext', 'Expenses');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.ff-app-header__context')?.textContent?.trim()).toBe('Expenses');
+  });
+
   it('renders an optional panel eyebrow above its title', async () => {
     await TestBed.configureTestingModule({ imports: [PanelComponent] }).compileComponents();
 

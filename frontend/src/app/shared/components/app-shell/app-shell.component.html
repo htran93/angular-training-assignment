@@ -16,6 +16,9 @@
       </span>
       <span>{{ brandName }}</span>
     </a>
+    @if (headerContext) {
+      <span class="ff-app-header__context">{{ headerContext }}</span>
+    }
 
     <div class="ff-family-identity" [attr.aria-label]="familyName">
       <span>{{ familyName }}</span>

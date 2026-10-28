@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { MonthlyPlanPageComponent } from './features/monthly-planning/monthly-plan-page.component';
 import { MonthlyPlanningPageComponent } from './features/monthly-planning/monthly-planning-page.component';
+import { AddExpensePageComponent } from './features/expenses/add-expense-page.component';
 import { RoutePlaceholderPageComponent } from './route-placeholder-page.component';
 
 export const routes: Routes = [
@@ -23,7 +24,7 @@ export const routes: Routes = [
   },
   {
     path: 'expenses/new',
-    component: RoutePlaceholderPageComponent,
+    component: AddExpensePageComponent,
     data: { pageTitle: 'Add expense' }
   },
   { path: '**', redirectTo: 'monthly-planning' }

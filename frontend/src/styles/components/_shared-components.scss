@@ -49,6 +49,14 @@
   text-decoration: none;
 }
 
+.ff-app-header__context {
+  padding-left: 0.75rem;
+  border-left: 0.0625rem solid color-mix(in srgb, var(--f1-surface) 35%, transparent);
+  color: var(--f1-surface);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+}
+
 .ff-app-header__mark,
 .ff-family-identity__avatar {
   width: var(--shell-header-action-size);
