@@ -1,4 +1,4 @@
-import { JarType } from '../../../shared/models/jar-type';
+import { isJarType, JarType } from '../../../shared/models/jar-type';
 
 export interface CreateExpenseRequest {
   expenseDate: string;
@@ -38,22 +38,8 @@ export class InvalidExpenseResponseError extends Error {
   }
 }
 
-const jarTypes = new Set<string>([
-  'livingExpenses',
-  'food',
-  'children',
-  'emergencyFund',
-  'savings',
-  'investment',
-  'entertainmentAndTravel'
-]);
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isJarType(value: unknown): value is JarType {
-  return typeof value === 'string' && jarTypes.has(value);
 }
 
 function isDigitString(value: unknown): value is string {

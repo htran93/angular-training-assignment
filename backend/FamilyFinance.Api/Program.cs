@@ -32,7 +32,7 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCors(options => options.AddPolicy("frontend-development", policy =>
-    policy.WithOrigins("http://localhost:4200", "http://localhost:4400")
+    policy.WithOrigins("http://localhost:4200", "http://localhost:4400", "http://127.0.0.1:4210")
         .AllowAnyHeader()
         .AllowAnyMethod()));
 builder.Services.AddEndpointsApiExplorer();

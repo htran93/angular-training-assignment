@@ -11,11 +11,6 @@ import {
   InvalidBudgetPlanResponseError,
   MonthlyPlanResponse
 } from '../models/budget-plan.models';
-import {
-  CreateExpenseRequest,
-  CreateExpenseResponse,
-  InvalidExpenseResponseError
-} from '../../expenses/models/expense.models';
 
 const defaultJarsResponse: DefaultJarsResponse = {
   currency: 'VND',
@@ -47,26 +42,6 @@ const monthlyPlanResponse: MonthlyPlanResponse = {
     { jarType: 'investment', name: 'Investment', percentage: 10, budgetVnd: '2500000' },
     { jarType: 'entertainmentAndTravel', name: 'Entertainment & Travel', percentage: 5, budgetVnd: '1250000' }
   ]
-};
-
-const createExpenseResponse: CreateExpenseResponse = {
-  expense: {
-    id: 21,
-    expenseDate: '2026-09-15',
-    jarType: 'food',
-    jarName: 'Food',
-    amountVnd: '125000',
-    description: 'Market groceries',
-    createdAtUtc: '2026-09-15T10:00:00Z'
-  },
-  jarSummary: {
-    jarType: 'food',
-    jarName: 'Food',
-    percentage: 20,
-    budgetVnd: '5000000',
-    spentVnd: '725000',
-    remainingVnd: '4275000'
-  }
 };
 
 describe('BudgetPlanApiService', () => {
@@ -125,66 +100,6 @@ describe('BudgetPlanApiService', () => {
     request.flush(monthlyPlanResponse);
 
     expect(response?.monthlyIncomeVnd).toBe('25000000');
-  });
-
-  it('creates one expense with only the defined fields and validates backend totals', () => {
-    const payload: CreateExpenseRequest = {
-      expenseDate: '2026-09-15',
-      jarType: 'food',
-      amountVnd: '125000',
-      description: 'Market groceries'
-    };
-    let response: CreateExpenseResponse | undefined;
-    service.createExpense(payload).subscribe(value => response = value);
-
-    const request = http.expectOne(BUDGET_PLAN_ENDPOINTS.EXPENSES);
-    expect(request.request.method).toBe('POST');
-    expect(request.request.body).toEqual(payload);
-    expect(Object.keys(request.request.body as object)).toEqual([
-      'expenseDate',
-      'jarType',
-      'amountVnd',
-      'description'
-    ]);
-    request.flush(createExpenseResponse, { status: 201, statusText: 'Created' });
-
-    expect(response?.expense.id).toBe(21);
-    expect(response?.jarSummary.spentVnd).toBe('725000');
-    expect(response?.jarSummary.remainingVnd).toBe('4275000');
-  });
-
-  it('accepts a negative remaining amount and does not normalize backend totals', () => {
-    let response: CreateExpenseResponse | undefined;
-    service.createExpense({
-      expenseDate: '2026-09-15',
-      jarType: 'food',
-      amountVnd: '125000',
-      description: 'Market groceries'
-    }).subscribe(value => response = value);
-
-    http.expectOne(BUDGET_PLAN_ENDPOINTS.EXPENSES).flush({
-      ...createExpenseResponse,
-      jarSummary: { ...createExpenseResponse.jarSummary, spentVnd: '6000000', remainingVnd: '-1000000' }
-    }, { status: 201, statusText: 'Created' });
-
-    expect(response?.jarSummary.remainingVnd).toBe('-1000000');
-  });
-
-  it('rejects a malformed expense response instead of rendering fabricated totals', () => {
-    let error: unknown;
-    service.createExpense({
-      expenseDate: '2026-09-15',
-      jarType: 'food',
-      amountVnd: '125000',
-      description: 'Market groceries'
-    }).subscribe({ error: received => error = received });
-
-    http.expectOne(BUDGET_PLAN_ENDPOINTS.EXPENSES).flush({
-      ...createExpenseResponse,
-      jarSummary: { ...createExpenseResponse.jarSummary, remainingVnd: 'invalid' }
-    }, { status: 201, statusText: 'Created' });
-
-    expect(error).toBeInstanceOf(InvalidExpenseResponseError);
   });
 
   it('rejects malformed defaults instead of rendering partial jar data', () => {

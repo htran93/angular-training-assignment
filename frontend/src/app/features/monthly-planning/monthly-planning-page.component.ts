@@ -11,6 +11,7 @@ import { PanelComponent } from '../../shared/components/panel/panel.component';
 import { StatePanelComponent } from '../../shared/components/state-panel/state-panel.component';
 import { AppShellComponent } from '../../shared/components/app-shell/app-shell.component';
 import { VndAmountInputComponent } from '../../shared/components/vnd-amount-input/vnd-amount-input.component';
+import { getApiErrorCode } from '../../shared/utils/api-error';
 import { BudgetPlanApiService } from './data-access/budget-plan-api.service';
 import {
   DefaultJarsResponse,
@@ -20,6 +21,7 @@ import {
 type DefaultsState = 'loading' | 'ready' | 'error';
 
 const MAX_INT64 = '9223372036854775807';
+const MIN_MONTHLY_INCOME_VND = '11';
 
 function isValidMonth(value: string): boolean {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
@@ -56,6 +58,12 @@ function incomeValidator(): ValidatorFn {
     ) {
       return { maximum: true };
     }
+    if (
+      canonicalValue.length < MIN_MONTHLY_INCOME_VND.length ||
+      (canonicalValue.length === MIN_MONTHLY_INCOME_VND.length && canonicalValue < MIN_MONTHLY_INCOME_VND)
+    ) {
+      return { minimumAllocation: true };
+    }
     return null;
   };
 }
@@ -64,14 +72,6 @@ function currentMonthValue(): string {
   const today = new Date();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   return `${today.getFullYear()}-${month}`;
-}
-
-function apiErrorCode(value: unknown): string | null {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return null;
-  }
-  const code = Reflect.get(value, 'code');
-  return typeof code === 'string' ? code : null;
 }
 
 @Component({
@@ -144,6 +144,9 @@ export class MonthlyPlanningPageComponent implements OnInit {
     }
     if (this.incomeControl.hasError('positive')) {
       return 'Income must be greater than zero.';
+    }
+    if (this.incomeControl.hasError('minimumAllocation')) {
+      return `Enter at least ${MIN_MONTHLY_INCOME_VND} VND so each jar receives a budget.`;
     }
     return this.incomeControl.hasError('maximum')
       ? 'Income exceeds the maximum supported amount.'
@@ -229,10 +232,10 @@ export class MonthlyPlanningPageComponent implements OnInit {
       return 'The server response could not be verified. Check this month’s plan before trying again.';
     }
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 409 || apiErrorCode(error.error) === 'MONTHLY_PLAN_ALREADY_EXISTS') {
+      if (error.status === 409 || getApiErrorCode(error.error) === 'MONTHLY_PLAN_ALREADY_EXISTS') {
         return 'A plan already exists for this month. No second plan was created.';
       }
-      if (error.status === 400 || apiErrorCode(error.error) === 'VALIDATION_ERROR') {
+      if (error.status === 400 || getApiErrorCode(error.error) === 'VALIDATION_ERROR') {
         return 'The server rejected the selected month or income. Check the form and try again.';
       }
     }

@@ -4,11 +4,6 @@ import { Observable, map } from 'rxjs';
 
 import { BUDGET_PLAN_ENDPOINTS } from '../../../constants/api-endpoints';
 import {
-  CreateExpenseRequest,
-  CreateExpenseResponse,
-  parseCreateExpenseResponse
-} from '../../expenses/models/expense.models';
-import {
   CreateMonthlyPlanRequest,
   DefaultJarsResponse,
   MonthlyPlanResponse,
@@ -33,10 +28,5 @@ export class BudgetPlanApiService {
   getMonthlyPlan(year: number, month: number): Observable<MonthlyPlanResponse> {
     return this.http.get<unknown>(BUDGET_PLAN_ENDPOINTS.BY_PERIOD(year, month))
       .pipe(map(parseMonthlyPlanResponse));
-  }
-
-  createExpense(request: CreateExpenseRequest): Observable<CreateExpenseResponse> {
-    return this.http.post<unknown>(BUDGET_PLAN_ENDPOINTS.EXPENSES, request)
-      .pipe(map(parseCreateExpenseResponse));
   }
 }

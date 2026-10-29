@@ -1,0 +1,175 @@
+<app-app-shell headerContext="Dashboard">
+  <div class="f5-page">
+    <header class="f5-welcome">
+      <div class="f5-welcome__content">
+        <p class="f5-eyebrow">{{ today | date:'EEEE, MMMM d, y' }}</p>
+        <h1>{{ greeting }}</h1>
+        <p class="f5-welcome__copy">Here is your family finance snapshot for the selected month.</p>
+
+        <label class="f5-month-label">
+          <span class="f5-month-label__icon" aria-hidden="true">▦</span>
+          <span class="f5-visually-hidden">Dashboard month</span>
+          <app-month-selector
+            id="dashboard-month"
+            label="Dashboard month"
+            placeholder="Select an existing plan"
+            [options]="periodOptions()"
+            [value]="selectedPeriod()"
+            [disabled]="pageState() === 'loading-periods' || periodOptions().length === 0"
+            (valueChange)="selectPeriod($event)" />
+        </label>
+      </div>
+
+      <a class="ff-button ff-button--primary f5-plan-link" routerLink="/monthly-planning">Plan a month</a>
+    </header>
+
+    @if (pageState() === 'loading-periods') {
+      <app-state-panel variant="loading" title="Loading dashboard" message="Loading your available monthly plans…" />
+    } @else if (pageState() === 'no-plans') {
+      <app-state-panel
+        variant="empty"
+        title="No monthly plans yet"
+        message="Create a monthly plan before viewing your dashboard.">
+        <a state-action class="ff-button ff-button--primary" routerLink="/monthly-planning">Create a monthly plan</a>
+      </app-state-panel>
+    } @else if (pageState() === 'missing-plan') {
+      <app-state-panel
+        variant="empty"
+        title="Monthly plan unavailable"
+        message="This plan is no longer available. Create or choose another monthly plan.">
+        <a state-action class="ff-button ff-button--secondary" routerLink="/monthly-planning">Monthly planning</a>
+      </app-state-panel>
+    } @else if (pageState() === 'error') {
+      <app-state-panel variant="error" [title]="errorTitle()" [message]="errorMessage()">
+        <button state-action class="ff-button ff-button--secondary" type="button" (click)="retry()">Try again</button>
+      </app-state-panel>
+    } @else if (pageState() === 'loading-dashboard') {
+      <section class="f5-loading-dashboard" aria-label="Loading monthly dashboard" aria-live="polite">
+        <app-state-panel variant="loading" title="Loading plan" message="Refreshing the selected month’s dashboard…" />
+        <div class="f5-skeleton-list" aria-hidden="true">
+          @for (row of skeletonRows; track row) {
+            <div class="f5-skeleton-row"></div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (dashboard(); as data) {
+      <section class="f5-summary-grid" aria-label="Financial summary">
+        <app-metric-card
+          label="Available balance"
+          [value]="data.remainingVnd | vndAmount"
+          [detail]="selectedPeriodLabel()" />
+        <app-metric-card
+          label="Monthly income"
+          [value]="data.monthlyIncomeVnd | vndAmount"
+          [detail]="selectedPeriodLabel()" />
+        <app-metric-card
+          label="Spent this month"
+          [value]="data.totalSpentVnd | vndAmount"
+          [detail]="formatPercentage(data.percentageUsed) + '% of income'" />
+      </section>
+
+      <div class="f5-dashboard-grid">
+        <app-panel class="f5-panel" title="Seven jar allocation" eyebrow="Monthly plan">
+          <a panel-actions class="f5-panel-link" [routerLink]="['/monthly-plans', data.year, data.month]">View plan</a>
+          <div class="f5-allocation-content">
+            <div
+              class="f5-donut"
+              [style.background]="allocationDonutBackground()"
+              role="img"
+              aria-label="100 percent of income allocated across seven jars">
+              <div class="f5-donut__label">
+                <strong>100%</strong>
+                <span>allocated</span>
+              </div>
+            </div>
+
+            <ul class="f5-legend" aria-label="Jar allocation rates">
+              @for (jar of data.jars; track jar.jarType) {
+                <li class="f5-legend__row">
+                  <span class="f5-legend__dot" [style.background-color]="jarColor(jar.jarType)" aria-hidden="true"></span>
+                  <span>{{ jar.jarName }}</span>
+                  <strong>{{ jar.percentage }}%</strong>
+                </li>
+              }
+            </ul>
+          </div>
+        </app-panel>
+
+        <app-panel class="f5-panel" title="Recent activity" eyebrow="Latest updates">
+          <a panel-actions class="f5-panel-link" routerLink="/expenses/new">Add expense</a>
+          @if (data.recentExpenses.length > 0) {
+            <ul class="f5-activity-list">
+              @for (expense of data.recentExpenses; track expense.id) {
+                <li class="f5-activity-list__item">
+                  <span
+                    class="f5-activity-marker"
+                    [style.background-color]="jarColor(expense.jarType)"
+                    aria-hidden="true">
+                    {{ jarInitial(expense.jarName) }}
+                  </span>
+                  <span class="f5-activity-list__identity">
+                    <strong>{{ expense.description }}</strong>
+                    <small>{{ expense.jarName }} jar</small>
+                    <time [attr.datetime]="expense.expenseDate">{{ formatExpenseDate(expense.expenseDate) }}</time>
+                  </span>
+                  <b aria-label="Expense amount">−{{ expense.amountVnd | vndAmount }}</b>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="f5-activity-empty">No recent expenses for this plan.</p>
+          }
+        </app-panel>
+      </div>
+
+      <app-panel class="f5-panel f5-statistics-panel" title="Updated spending statistics" eyebrow="Plan performance">
+        <span panel-actions class="f5-statistics-period">{{ selectedPeriodLabel() }}</span>
+        <div class="f5-updated-summary">
+          <div>
+            <span>Available after expenses</span>
+            <strong>{{ data.remainingVnd | vndAmount }}</strong>
+          </div>
+          <div>
+            <span>Spent this month</span>
+            <strong>{{ data.totalSpentVnd | vndAmount }}</strong>
+          </div>
+          <div>
+            <span>Share of income</span>
+            <strong>{{ formatPercentage(data.percentageUsed) }}% of income</strong>
+          </div>
+        </div>
+
+        <div class="f5-jar-progress-list">
+          @for (jar of data.jars; track jar.jarType) {
+            <article class="f5-jar-progress-row">
+              <div class="f5-jar-progress-row__heading">
+                <strong>{{ jar.jarName }}</strong>
+                <span>{{ percentageLabel(jar.percentageUsed) }}</span>
+              </div>
+              @if (jar.percentageUsed === null) {
+                <span class="f5-progress-unavailable">Progress unavailable for zero budget</span>
+              } @else {
+                <app-progress-bar
+                  [label]="progressLabel(
+                    jar.jarName,
+                    (jar.spentBudgetVnd | vndAmount),
+                    (jar.plannedBudgetVnd | vndAmount),
+                    jar.percentageUsed
+                  )"
+                  [value]="jar.percentageUsed" />
+              }
+              <small>
+                {{ jar.spentBudgetVnd | vndAmount }} spent of {{ jar.plannedBudgetVnd | vndAmount }}
+              </small>
+              <p [class.f5-jar-progress-row__remaining--over-budget]="jar.remainingVnd.startsWith('-')">
+                Remaining: <strong>{{ jar.remainingVnd | vndAmount }}</strong>
+              </p>
+            </article>
+          }
+        </div>
+      </app-panel>
+    }
+  </div>
+</app-app-shell>

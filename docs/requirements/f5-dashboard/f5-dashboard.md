@@ -29,6 +29,8 @@
 | A2 | Overall progress means total spent divided by monthly income; each jar's progress means jar spent divided by jar budget. | Progress values and the dashboard's meaning need revision. |
 | A3 | Remaining balance is monthly income less total spent overall, and jar budget less jar spent for each jar. | Displayed balance definitions need revision. |
 | A4 | When saved expenses exceed a budget, the dashboard shows a negative remaining balance and progress above 100%; it does not block or alter the expense. | Over-budget display and F3 spending rules need revision. |
+| A5 | The dashboard initially selects the chronologically most recent existing plan. | The initial selection behavior needs revision. Confirmed by the user. |
+| A6 | The dashboard includes up to three most recently created expenses for the selected plan, matching the reference's activity list. | Recent activity content and list size need revision. The user confirmed recent activity should be included. |
 
 ## Main Workflow
 
@@ -38,7 +40,7 @@
 4. The system displays each of the plan's seven jars with its allocation rate, allocated budget, spent amount, remaining balance, progress, and identifying color.
 **Alternate flow:** None identified for this dashboard view.
 
-**Mockup/wireframe:** TBD. `docs/requirements/f2-income-allocation/month-budget-summary.html` is a related allocation-view prototype; it does not specify F5 spent/balance values.
+**Visual reference:** `docs/requirements/f5-dashboard/f5-dashboard.html`. Its example values are illustrative; F5 monetary values come from the backend.
 
 ## Acceptance Criteria
 
@@ -101,6 +103,16 @@ Then monetary values are displayed in whole VND using backend-calculated values
 And the dashboard does not substitute independently calculated monetary values
 ```
 
+### AC7: Show recent activity for the selected plan
+
+```gherkin
+Given the selected monthly plan has saved expenses
+When the dashboard is displayed
+Then the dashboard shows up to three of the most recently created expenses assigned to that plan
+And each entry identifies its description, date, jar, and amount
+And when the plan has no expenses, the dashboard shows an empty activity state
+```
+
 ## Out of Scope
 
 - Creating a monthly plan or changing its income; covered by F1.
@@ -133,8 +145,7 @@ And the dashboard does not substitute independently calculated monetary values
 ## Open Questions
 
 - **Business:** Confirm the definitions of overall and per-jar progress in A2, including display precision and whether progress may exceed 100%.
-- **Business/finance:** Confirm whether over-budget expenses are allowed and whether negative remaining balances should be shown; F3 currently leaves the spending cap unresolved.
-- **UX:** Should the dashboard initially select the current month, the most recent plan, or require explicit selection?
+- **UX:** Confirm the display precision for non-integer progress percentages. The API currently returns values rounded to two decimal places.
 - **Requirements:** Provide or confirm the intended `product-brief.md` source and whether it adds further F5 behavior.
 
 ## Readiness Check

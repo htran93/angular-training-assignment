@@ -118,6 +118,21 @@ describe('AddExpensePageComponent', () => {
     expect(fixture.nativeElement.querySelector('a[routerLink="/monthly-planning"]')).not.toBeNull();
   });
 
+  it('shows a load error for a 404 that does not identify a missing plan', () => {
+    const fixture = createPage();
+    fixture.componentInstance.expenseDateControl.setValue('2026-11-03');
+    fixture.detectChanges();
+    http.expectOne(BUDGET_PLAN_ENDPOINTS.BY_PERIOD(2026, 11)).flush(
+      { code: 'ENDPOINT_NOT_FOUND' },
+      { status: 404, statusText: 'Not Found' }
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.planState()).toBe('error');
+    expect(fixture.nativeElement.textContent).toContain('Monthly plan unavailable');
+    expect(fixture.nativeElement.textContent).not.toContain('Monthly plan required');
+  });
+
   it('posts the valid expense and displays backend totals including overspending', () => {
     const fixture = createPage();
     loadPlan(fixture);
@@ -252,6 +267,22 @@ describe('AddExpensePageComponent', () => {
     expect(fixture.componentInstance.descriptionControl.value).toBe('Market groceries');
     expect(fixture.componentInstance.submitError()).toContain('could not confirm whether the expense was saved');
     expect(fixture.nativeElement.textContent).not.toContain('Sensitive database error details.');
+  });
+
+  it('keeps the loaded plan when expense creation returns an unrelated 404', () => {
+    const fixture = createPage();
+    loadPlan(fixture);
+    fillValidExpense(fixture);
+    fixture.componentInstance.submit();
+    http.expectOne(BUDGET_PLAN_ENDPOINTS.EXPENSES).flush(
+      { code: 'ENDPOINT_NOT_FOUND' },
+      { status: 404, statusText: 'Not Found' }
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.planState()).toBe('ready');
+    expect(fixture.componentInstance.plan()?.month).toBe(9);
+    expect(fixture.componentInstance.submitError()).toContain('could not confirm whether the expense was saved');
   });
 
   it('reloads the plan and requires a fresh jar selection when the API rejects membership', () => {

@@ -4,7 +4,7 @@ import { routes } from './app.routes';
 import { MonthlyPlanPageComponent } from './features/monthly-planning/monthly-plan-page.component';
 import { MonthlyPlanningPageComponent } from './features/monthly-planning/monthly-planning-page.component';
 import { AddExpensePageComponent } from './features/expenses/add-expense-page.component';
-import { RoutePlaceholderPageComponent } from './route-placeholder-page.component';
+import { DashboardPageComponent } from './features/dashboard/dashboard-page.component';
 
 describe('routes', () => {
   it('defines the application navigation routes', () => {
@@ -18,7 +18,7 @@ describe('routes', () => {
     ]);
   });
 
-  it('uses the implemented feature pages and leaves the dashboard as a placeholder', () => {
+  it('uses the implemented feature pages', () => {
     const featureRoutes = routes.filter(route =>
       ['dashboard', 'monthly-planning', 'monthly-plans/:year/:month', 'expenses/new'].includes(route.path ?? '')
     );
@@ -26,7 +26,7 @@ describe('routes', () => {
     expect(featureRoutes).toHaveLength(4);
     expect(routes.find(route => route.path === 'monthly-planning')?.component).toBe(MonthlyPlanningPageComponent);
     expect(routes.find(route => route.path === 'monthly-plans/:year/:month')?.component).toBe(MonthlyPlanPageComponent);
-    expect(routes.find(route => route.path === 'dashboard')?.component).toBe(RoutePlaceholderPageComponent);
+    expect(routes.find(route => route.path === 'dashboard')?.component).toBe(DashboardPageComponent);
     expect(routes.find(route => route.path === 'expenses/new')?.component).toBe(AddExpensePageComponent);
   });
 });

@@ -12,10 +12,12 @@ import { PanelComponent } from '../../shared/components/panel/panel.component';
 import { AppShellComponent } from '../../shared/components/app-shell/app-shell.component';
 import { StatePanelComponent } from '../../shared/components/state-panel/state-panel.component';
 import { VndAmountInputComponent } from '../../shared/components/vnd-amount-input/vnd-amount-input.component';
-import { JarType } from '../../shared/models/jar-type';
+import { isJarType, JarType } from '../../shared/models/jar-type';
 import { VndAmountPipe } from '../../shared/pipes/vnd-amount.pipe';
+import { getApiErrorCode } from '../../shared/utils/api-error';
 import { BudgetPlanApiService } from '../monthly-planning/data-access/budget-plan-api.service';
 import { InvalidBudgetPlanResponseError, MonthlyPlanJar, MonthlyPlanResponse } from '../monthly-planning/models/budget-plan.models';
+import { ExpenseApiService } from './data-access/expense-api.service';
 import {
   CreateExpenseRequest,
   InvalidExpenseResponseError,
@@ -28,19 +30,6 @@ type ExpenseField = 'expenseDate' | 'jarType' | 'amountVnd' | 'description';
 type ExpenseFieldErrors = Partial<Record<ExpenseField, string>>;
 
 const MAX_INT64 = '9223372036854775807';
-const jarTypes = new Set<string>([
-  'livingExpenses',
-  'food',
-  'children',
-  'emergencyFund',
-  'savings',
-  'investment',
-  'entertainmentAndTravel'
-]);
-
-function isJarType(value: string | null): value is JarType {
-  return value !== null && jarTypes.has(value);
-}
 
 function dateValidator(): ValidatorFn {
   return control => control.value === '' || isValidExpenseDate(control.value) ? null : { invalidDate: true };
@@ -80,14 +69,6 @@ function descriptionValidator(): ValidatorFn {
     }
     return Array.from(value).length > 500 ? { maxlength: true } : null;
   };
-}
-
-function apiErrorCode(value: unknown): string | null {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return null;
-  }
-  const code = Reflect.get(value, 'code');
-  return typeof code === 'string' ? code : null;
 }
 
 function apiFieldErrors(value: unknown): Array<{ field: string; code: string }> {
@@ -193,6 +174,7 @@ export class AddExpensePageComponent implements OnInit {
 
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(BudgetPlanApiService);
+  private readonly expenseApi = inject(ExpenseApiService);
   private readonly destroyRef = inject(DestroyRef);
   private submitted = false;
   private requestedJarType: JarType | null = null;
@@ -316,7 +298,7 @@ export class AddExpensePageComponent implements OnInit {
 
     this.isSubmitting.set(true);
     this.form.disable();
-    this.api.createExpense(request)
+    this.expenseApi.createExpense(request)
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: response => {
@@ -401,7 +383,10 @@ export class AddExpensePageComponent implements OnInit {
           if (requestId !== this.planRequestId) {
             return;
           }
-          if (error instanceof HttpErrorResponse && error.status === 404) {
+          if (
+            error instanceof HttpErrorResponse &&
+            getApiErrorCode(error.error) === 'MONTHLY_PLAN_NOT_FOUND'
+          ) {
             this.planState.set('missing');
             this.planError.set('Create a monthly plan before adding an expense.');
           } else if (error instanceof InvalidBudgetPlanResponseError) {
@@ -434,8 +419,8 @@ export class AddExpensePageComponent implements OnInit {
       return;
     }
 
-    const code = error instanceof HttpErrorResponse ? apiErrorCode(error.error) : null;
-    if (error instanceof HttpErrorResponse && (error.status === 404 || code === 'MONTHLY_PLAN_NOT_FOUND')) {
+    const code = error instanceof HttpErrorResponse ? getApiErrorCode(error.error) : null;
+    if (error instanceof HttpErrorResponse && code === 'MONTHLY_PLAN_NOT_FOUND') {
       this.planRequestId += 1;
       this.plan.set(null);
       this.planState.set('missing');

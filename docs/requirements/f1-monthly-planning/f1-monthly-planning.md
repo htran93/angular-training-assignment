@@ -24,7 +24,7 @@
 | ID | Assumption                                                      | Impact if incorrect                                                 |
 | -- | --------------------------------------------------------------- | ------------------------------------------------------------------- |
 | A1 | The month selector identifies a year and month.                 | Duplicate-plan validation and plan lookup rules may need revision.  |
-| A2 | Income is entered as a positive VND amount.                     | Currency and validation rules may need revision.                    |
+| A2 | Income is entered as a whole-VND amount high enough to give every default jar a positive budget. | Currency and minimum-income validation may need revision. |
 | A3 | The seven jar names and allocation rates are fixed for the MVP. | The default jar definition must be confirmed before implementation. |
 | A4 | The selector defaults to the current month, but the user can change it. | The initial form state may need revision. |
 | A5 | Income is represented by ASCII digits; the input displays period separators in groups of three, while commas and other non-digit characters remain invalid. | Input guidance and validation behavior may need revision. |
@@ -37,6 +37,7 @@
   - a create-plan action.
 - The month selector defaults to the current month and remains editable.
 - The income field accepts ASCII digit input and automatically displays groups of three digits using periods (for example, entering `1000` displays `1.000`). The form and API value remains the ungrouped digit string (`1000`). Commas, signs, decimals, and other non-digit characters remain invalid.
+- With the fixed jar rates and largest-remainder allocation, the minimum income is 11 VND; this gives every jar a positive whole-VND budget.
 - After successful creation, the user is taken to or shown the current month's jar dashboard.
 - The screen does not require advanced styling, custom jar editing, or expense entry as part of this story.
 
@@ -66,7 +67,7 @@ And the user can submit the form to create a plan
 
 ```gherkin
 Given no plan exists for the selected year and month
-And the user has entered a positive income amount
+And the user has entered an income amount of at least 11 VND
 When the user submits the monthly planning form
 Then the system creates one plan for the selected year and month
 And the plan contains exactly seven predefined jars
@@ -74,14 +75,14 @@ And the jar allocation percentages total exactly 100 percent
 And the user can see the current month's jar dashboard
 ```
 
-### AC3: Reject missing or non-positive income
+### AC3: Reject missing, non-positive, or insufficient income
 
 ```gherkin
 Given the user is completing the monthly planning form
-And the income field is empty, zero, negative, or invalid
+And the income field is empty, below 11 VND, negative, or invalid
 When the user submits the form
 Then the system does not create a monthly plan
-And the user sees a validation message explaining that income must be positive
+And the user sees a validation message explaining that each jar must receive a positive budget
 ```
 
 ### AC4: Prevent duplicate monthly plans
@@ -109,6 +110,16 @@ Then the plan contains these seven jars with the specified default rates:
   | Entertainment & Travel | 5 percent |
 ```
 
+### AC6: Ensure each jar receives a positive budget
+
+```gherkin
+Given the user enters monthly income
+When the backend applies the fixed percentages and largest-remainder allocation
+Then the plan is created only if every jar budget is greater than zero VND
+And the minimum accepted income is 11 VND
+And lower income values are rejected without creating a plan
+```
+
 ## Out of Scope
 
 - Editing jar names or allocation percentages.
@@ -129,6 +140,7 @@ Then the plan contains these seven jars with the specified default rates:
 | ---------------------------------- | ----------------------------------------------------------------------- |
 | F1 monthly planning                | `docs/requirements/monthly-income-allocation.md`                      |
 | Positive income required           | `docs/requirements/monthly-income-allocation.md`, Acceptance Criteria |
+| Each default jar receives a positive whole-VND budget | Fixed rates and largest-remainder allocation; minimum 11 VND |
 | Exactly seven predefined jars      | `docs/requirements/monthly-income-allocation.md`, Acceptance Criteria |
 | Allocation rates total 100 percent | `docs/requirements/monthly-income-allocation.md`, Acceptance Criteria |
 | One plan per year and month        | `docs/requirements/monthly-income-allocation.md`, Acceptance Criteria |

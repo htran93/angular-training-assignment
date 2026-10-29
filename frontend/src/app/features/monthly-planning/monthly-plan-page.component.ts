@@ -9,6 +9,7 @@ import { JarCardComponent } from '../../shared/components/jar-card/jar-card.comp
 import { MetricCardComponent } from '../../shared/components/metric-card/metric-card.component';
 import { PanelComponent } from '../../shared/components/panel/panel.component';
 import { StatePanelComponent } from '../../shared/components/state-panel/state-panel.component';
+import { getApiErrorCode } from '../../shared/utils/api-error';
 import { JarType } from '../../shared/models/jar-type';
 import { VndAmountPipe } from '../../shared/pipes/vnd-amount.pipe';
 import { BudgetPlanApiService } from './data-access/budget-plan-api.service';
@@ -46,14 +47,6 @@ function parsePlanPeriod(yearValue: string | null, monthValue: string | null): P
     Number.isInteger(month) && month >= 1 && month <= 12
     ? { year, month }
     : null;
-}
-
-function apiErrorCode(value: unknown): string | null {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return null;
-  }
-  const code = Reflect.get(value, 'code');
-  return typeof code === 'string' ? code : null;
 }
 
 @Component({
@@ -142,14 +135,14 @@ export class MonthlyPlanPageComponent implements OnInit {
   }
 
   private classifyError(error: unknown): PlanLoadResult {
+    if (error instanceof InvalidBudgetPlanResponseError) {
+      return { kind: 'error' };
+    }
     if (
-      error instanceof InvalidBudgetPlanResponseError ||
-      (error instanceof HttpErrorResponse &&
-        (error.status === 404 || apiErrorCode(error.error) === 'MONTHLY_PLAN_NOT_FOUND'))
+      error instanceof HttpErrorResponse &&
+      getApiErrorCode(error.error) === 'MONTHLY_PLAN_NOT_FOUND'
     ) {
-      return error instanceof HttpErrorResponse
-        ? { kind: 'not-found' }
-        : { kind: 'error' };
+      return { kind: 'not-found' };
     }
     return { kind: 'error' };
   }

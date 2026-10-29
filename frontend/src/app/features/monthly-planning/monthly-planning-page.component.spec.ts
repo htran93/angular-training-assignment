@@ -108,29 +108,46 @@ describe('MonthlyPlanningPageComponent', () => {
     expect(http.match(BUDGET_PLAN_ENDPOINTS.PLANS)).toHaveLength(0);
   });
 
-  it('accepts one VND as the positive lower boundary', async () => {
+  it('rejects income below the minimum needed to fund all seven jars', () => {
     const fixture = TestBed.createComponent(MonthlyPlanningPageComponent);
     fixture.detectChanges();
     http.expectOne(BUDGET_PLAN_ENDPOINTS.DEFAULT_JARS).flush(defaultJarsResponse);
     fixture.detectChanges();
 
     fixture.componentInstance.monthControl.setValue('2026-09');
-    fixture.componentInstance.incomeControl.setValue('1');
+    for (const income of ['1', '10']) {
+      fixture.componentInstance.incomeControl.setValue(income);
+      fixture.componentInstance.submit();
+      expect(fixture.componentInstance.incomeControl.invalid).toBe(true);
+      expect(fixture.componentInstance.incomeErrorMessage).toContain('at least 11 VND');
+    }
+
+    expect(http.match(BUDGET_PLAN_ENDPOINTS.PLANS)).toHaveLength(0);
+  });
+
+  it('accepts the minimum income that gives every jar a positive budget', async () => {
+    const fixture = TestBed.createComponent(MonthlyPlanningPageComponent);
+    fixture.detectChanges();
+    http.expectOne(BUDGET_PLAN_ENDPOINTS.DEFAULT_JARS).flush(defaultJarsResponse);
+    fixture.detectChanges();
+
+    fixture.componentInstance.monthControl.setValue('2026-09');
+    fixture.componentInstance.incomeControl.setValue('11');
     fixture.componentInstance.submit();
 
     const request = http.expectOne(BUDGET_PLAN_ENDPOINTS.PLANS);
-    expect(request.request.body).toEqual({ year: 2026, month: 9, monthlyIncomeVnd: '1' });
+    expect(request.request.body).toEqual({ year: 2026, month: 9, monthlyIncomeVnd: '11' });
     request.flush({
       ...monthlyPlanResponse,
-      monthlyIncomeVnd: '1',
+      monthlyIncomeVnd: '11',
       jars: [
-        { jarType: 'livingExpenses', name: 'Living Expenses', percentage: 35, budgetVnd: '1' },
-        { jarType: 'food', name: 'Food', percentage: 20, budgetVnd: '0' },
-        { jarType: 'children', name: 'Children', percentage: 10, budgetVnd: '0' },
-        { jarType: 'emergencyFund', name: 'Emergency Fund', percentage: 10, budgetVnd: '0' },
-        { jarType: 'savings', name: 'Savings', percentage: 10, budgetVnd: '0' },
-        { jarType: 'investment', name: 'Investment', percentage: 10, budgetVnd: '0' },
-        { jarType: 'entertainmentAndTravel', name: 'Entertainment & Travel', percentage: 5, budgetVnd: '0' }
+        { jarType: 'livingExpenses', name: 'Living Expenses', percentage: 35, budgetVnd: '4' },
+        { jarType: 'food', name: 'Food', percentage: 20, budgetVnd: '2' },
+        { jarType: 'children', name: 'Children', percentage: 10, budgetVnd: '1' },
+        { jarType: 'emergencyFund', name: 'Emergency Fund', percentage: 10, budgetVnd: '1' },
+        { jarType: 'savings', name: 'Savings', percentage: 10, budgetVnd: '1' },
+        { jarType: 'investment', name: 'Investment', percentage: 10, budgetVnd: '1' },
+        { jarType: 'entertainmentAndTravel', name: 'Entertainment & Travel', percentage: 5, budgetVnd: '1' }
       ]
     });
 

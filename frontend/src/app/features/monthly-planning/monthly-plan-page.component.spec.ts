@@ -147,4 +147,18 @@ describe('MonthlyPlanPageComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.ff-jar-card')).toHaveLength(0);
     expect(fixture.nativeElement.querySelector('a[routerLink="/monthly-planning"]')).not.toBeNull();
   });
+
+  it('shows a general error for a 404 that is not a missing-plan response', () => {
+    const fixture = TestBed.createComponent(MonthlyPlanPageComponent);
+    fixture.detectChanges();
+    http.expectOne(BUDGET_PLAN_ENDPOINTS.BY_PERIOD(2026, 9)).flush(
+      { code: 'ENDPOINT_NOT_FOUND' },
+      { status: 404, statusText: 'Not Found' }
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.state()).toBe('error');
+    expect(fixture.nativeElement.textContent).toContain('Plan unavailable');
+    expect(fixture.nativeElement.textContent).not.toContain('No plan for this month');
+  });
 });

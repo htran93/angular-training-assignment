@@ -1,4 +1,4 @@
-import { JarType } from '../../../shared/models/jar-type';
+import { isJarType, JarType, JAR_TYPES } from '../../../shared/models/jar-type';
 
 export interface DefaultJar {
   jarType: JarType;
@@ -43,16 +43,6 @@ export class InvalidBudgetPlanResponseError extends Error {
   }
 }
 
-const jarTypes = new Set<string>([
-  'livingExpenses',
-  'food',
-  'children',
-  'emergencyFund',
-  'savings',
-  'investment',
-  'entertainmentAndTravel'
-]);
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -63,10 +53,6 @@ function isUnknownArray(value: unknown): value is unknown[] {
 
 function isIntegerInRange(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
-}
-
-function isJarType(value: unknown): value is JarType {
-  return typeof value === 'string' && jarTypes.has(value);
 }
 
 function isDigitString(value: unknown): value is string {
@@ -94,12 +80,12 @@ function hasValidJarPercentages(jars: unknown[]): boolean {
 }
 
 function hasSevenKnownUniqueJarTypes(jars: unknown[]): boolean {
-  if (jars.length !== jarTypes.size) {
+  if (jars.length !== JAR_TYPES.length) {
     return false;
   }
 
   const types = jars.map(jar => isRecord(jar) ? jar['jarType'] : undefined);
-  return types.every(isJarType) && new Set(types).size === jarTypes.size;
+  return types.every(isJarType) && new Set(types).size === JAR_TYPES.length;
 }
 
 export function parseDefaultJarsResponse(value: unknown): DefaultJarsResponse {

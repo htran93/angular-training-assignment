@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 using FamilyFinance.Api.Data;
 using FamilyFinance.Api.DTOs;
@@ -16,6 +17,18 @@ public class BudgetPlansController(ApplicationDbContext db) : ControllerBase
 {
     [HttpGet("default-jars")]
     public ActionResult<DefaultJarsResponse> GetDefaultJars() => Ok(DefaultJarCatalog.ToResponse());
+
+    [HttpGet("periods")]
+    public async Task<ActionResult<BudgetPlanPeriodsResponse>> GetPeriods()
+    {
+        var periods = await db.BudgetPlans.AsNoTracking()
+            .OrderByDescending(plan => plan.Year)
+            .ThenByDescending(plan => plan.Month)
+            .Select(plan => new BudgetPlanPeriodResponse(plan.Year, plan.Month))
+            .ToListAsync();
+
+        return Ok(new BudgetPlanPeriodsResponse(periods));
+    }
 
     [HttpPost]
     public async Task<ActionResult<BudgetPlanResponse>> Create(CreateBudgetPlanRequest request)
@@ -101,29 +114,16 @@ public class BudgetPlansController(ApplicationDbContext db) : ControllerBase
             });
         }
 
-        var catalog = DefaultJarCatalog.All;
-        var expectedJarTypes = catalog.Select(jar => jar.JarType).ToHashSet();
-        if (plan.Allocations.Count != catalog.Count ||
-            plan.Allocations.Select(allocation => allocation.JarType).Distinct().Count() != catalog.Count ||
-            !expectedJarTypes.SetEquals(plan.Allocations.Select(allocation => allocation.JarType)) ||
-            plan.Allocations.Any(allocation => allocation.BudgetVnd <= 0))
+        if (!HasValidAllocations(plan))
         {
             return StatusCode(StatusCodes.Status500InternalServerError, InternalErrorResponse());
         }
 
         var allocationIds = plan.Allocations.Select(allocation => allocation.Id).ToArray();
-        var spentByAllocation = await db.Expenses.AsNoTracking()
-            .Where(expense => allocationIds.Contains(expense.BudgetAllocationId))
-            .GroupBy(expense => expense.BudgetAllocationId)
-            .Select(group => new
-            {
-                BudgetAllocationId = group.Key,
-                SpentVnd = group.Sum(expense => expense.AmountVnd)
-            })
-            .ToDictionaryAsync(group => group.BudgetAllocationId, group => group.SpentVnd);
+        var spentByAllocation = await GetSpentByAllocationAsync(allocationIds);
 
         var allocationsByJar = plan.Allocations.ToDictionary(allocation => allocation.JarType);
-        var jars = catalog.Select(jar =>
+        var jars = DefaultJarCatalog.All.Select(jar =>
         {
             var allocation = allocationsByJar[jar.JarType];
             var spentVnd = spentByAllocation.GetValueOrDefault(allocation.Id);
@@ -137,6 +137,115 @@ public class BudgetPlansController(ApplicationDbContext db) : ControllerBase
         }).ToList();
 
         return Ok(new SpendingByJarsResponse(year, month, "VND", jars));
+    }
+
+    [HttpGet("{year:int}/{month:int}/dashboard")]
+    public async Task<ActionResult<MonthlyDashboardResponse>> GetDashboard(int year, int month)
+    {
+        var errors = ValidatePeriod(year, month);
+        if (errors.Count > 0)
+        {
+            return BadRequest(new ApiErrorResponse
+            {
+                Code = "VALIDATION_ERROR",
+                Message = "The requested month is invalid.",
+                Errors = errors
+            });
+        }
+
+        var plan = await db.BudgetPlans.AsNoTracking()
+            .Include(item => item.Allocations)
+            .SingleOrDefaultAsync(item => item.Year == year && item.Month == month);
+        if (plan is null)
+        {
+            return NotFound(new ApiErrorResponse
+            {
+                Code = "MONTHLY_PLAN_NOT_FOUND",
+                Message = "Create a monthly plan before viewing the dashboard.",
+                Errors = []
+            });
+        }
+
+        if (!HasValidAllocations(plan, allowZeroBudgets: true))
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, InternalErrorResponse());
+        }
+
+        var allocationIds = plan.Allocations.Select(allocation => allocation.Id).ToArray();
+        var spentByAllocation = await GetSpentByAllocationAsync(allocationIds);
+        var allocationsByJar = plan.Allocations.ToDictionary(allocation => allocation.JarType);
+        var jars = DefaultJarCatalog.All.Select(jar =>
+        {
+            var allocation = allocationsByJar[jar.JarType];
+            var spentVnd = spentByAllocation.GetValueOrDefault(allocation.Id);
+            var remainingVnd = new BigInteger(allocation.BudgetVnd) - spentVnd;
+            decimal? percentageUsed = null;
+            if (allocation.BudgetVnd == 0)
+            {
+                if (spentVnd == 0)
+                {
+                    percentageUsed = 0m;
+                }
+            }
+            else
+            {
+                percentageUsed = decimal.Round((decimal)spentVnd * 100m / allocation.BudgetVnd, 2);
+            }
+
+            return new DashboardJarResponse(
+                jar.ApiValue,
+                jar.Name,
+                allocation.PercentagePoints,
+                allocation.BudgetVnd.ToString(CultureInfo.InvariantCulture),
+                spentVnd.ToString(CultureInfo.InvariantCulture),
+                remainingVnd.ToString(CultureInfo.InvariantCulture),
+                percentageUsed);
+        }).ToList();
+
+        var totalSpentVnd = spentByAllocation.Values.Aggregate(
+            BigInteger.Zero,
+            static (total, spent) => total + spent);
+        var remainingTotalVnd = new BigInteger(plan.MonthlyIncomeVnd) - totalSpentVnd;
+        var overallPercentageUsed = decimal.Round((decimal)totalSpentVnd * 100m / plan.MonthlyIncomeVnd, 2);
+
+        var allocationsById = plan.Allocations.ToDictionary(allocation => allocation.Id);
+        var recentExpenses = await db.Expenses.AsNoTracking()
+            .Where(expense => allocationIds.Contains(expense.BudgetAllocationId))
+            .OrderByDescending(expense => expense.CreatedAtUtc)
+            .ThenByDescending(expense => expense.Id)
+            .Take(3)
+            .Select(expense => new
+            {
+                expense.Id,
+                expense.ExpenseDate,
+                expense.Description,
+                expense.AmountVnd,
+                expense.BudgetAllocationId
+            })
+            .ToListAsync();
+
+        var recentExpenseResponses = recentExpenses.Select(expense =>
+        {
+            var jar = DefaultJarCatalog.Get(allocationsById[expense.BudgetAllocationId].JarType);
+            return new RecentExpenseResponse(
+                expense.Id,
+                expense.ExpenseDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                expense.Description,
+                jar.ApiValue,
+                jar.Name,
+                expense.AmountVnd.ToString(CultureInfo.InvariantCulture));
+        }).ToList();
+
+        return Ok(new MonthlyDashboardResponse(
+            year,
+            month,
+            "VND",
+            plan.MonthlyIncomeVnd.ToString(CultureInfo.InvariantCulture),
+            totalSpentVnd.ToString(CultureInfo.InvariantCulture),
+            remainingTotalVnd.ToString(CultureInfo.InvariantCulture),
+            overallPercentageUsed,
+            jars,
+            recentExpenseResponses));
     }
 
     [HttpPost("expenses")]
@@ -320,6 +429,15 @@ public class BudgetPlansController(ApplicationDbContext db) : ControllerBase
         {
             errors.Add(new ApiFieldError { Field = "monthlyIncomeVnd", Code = "MUST_BE_POSITIVE", Message = "Monthly income must be greater than zero." });
         }
+        else if (incomeVnd < BudgetAllocator.MinimumIncomeForPositiveBudgets)
+        {
+            errors.Add(new ApiFieldError
+            {
+                Field = "monthlyIncomeVnd",
+                Code = "INSUFFICIENT_FOR_ALL_JARS",
+                Message = $"Monthly income must be at least {BudgetAllocator.MinimumIncomeForPositiveBudgets.ToString(CultureInfo.InvariantCulture)} VND so every jar receives a budget."
+            });
+        }
 
         return errors;
     }
@@ -328,6 +446,36 @@ public class BudgetPlansController(ApplicationDbContext db) : ControllerBase
         exception.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 } sqliteException &&
         sqliteException.Message.Contains("BudgetPlans.Year", StringComparison.OrdinalIgnoreCase) &&
         sqliteException.Message.Contains("BudgetPlans.Month", StringComparison.OrdinalIgnoreCase);
+
+    private async Task<Dictionary<int, long>> GetSpentByAllocationAsync(int[] allocationIds) =>
+        await db.Expenses.AsNoTracking()
+            .Where(expense => allocationIds.Contains(expense.BudgetAllocationId))
+            .GroupBy(expense => expense.BudgetAllocationId)
+            .Select(group => new
+            {
+                BudgetAllocationId = group.Key,
+                SpentVnd = group.Sum(expense => expense.AmountVnd)
+            })
+            .ToDictionaryAsync(group => group.BudgetAllocationId, group => group.SpentVnd);
+
+    private static bool HasValidAllocations(BudgetPlan plan, bool allowZeroBudgets = false)
+    {
+        var allocations = plan.Allocations;
+        var catalog = DefaultJarCatalog.All;
+        var expectedJarTypes = catalog.Select(jar => jar.JarType).ToHashSet();
+
+        return plan.MonthlyIncomeVnd > 0 &&
+               allocations.Count == catalog.Count &&
+               allocations.Select(allocation => allocation.JarType).Distinct().Count() == catalog.Count &&
+               expectedJarTypes.SetEquals(allocations.Select(allocation => allocation.JarType)) &&
+               allocations.All(allocation =>
+                   allocation.PercentagePoints is >= 0 and <= 100 &&
+                   (allocation.BudgetVnd > 0 || allowZeroBudgets && allocation.BudgetVnd == 0)) &&
+               allocations.Sum(allocation => allocation.PercentagePoints) == DefaultJarCatalog.TotalPercentage &&
+               allocations.Aggregate(
+                   BigInteger.Zero,
+                   static (total, allocation) => total + allocation.BudgetVnd) == plan.MonthlyIncomeVnd;
+    }
 
     private static ApiErrorResponse DuplicateResponse() => new()
     {

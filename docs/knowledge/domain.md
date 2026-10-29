@@ -47,6 +47,10 @@ the floor of its exact percentage share, then distribute remaining VND units by
 descending fractional remainder. Ties follow the canonical jar order. The final
 seven budgets must be non-negative and sum exactly to the monthly income.
 
+BR-016: A new monthly plan must allocate at least 1 VND to every default jar.
+With the current fixed rates and largest-remainder policy, the minimum monthly
+income satisfying this rule is 11 VND.
+
 BR-008: Only one monthly plan is allowed for each Year + Month.
 
 BR-009: Currency is VND and monetary values are stored as whole VND amounts.

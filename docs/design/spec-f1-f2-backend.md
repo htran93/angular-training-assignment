@@ -42,7 +42,7 @@ The visual reference [month-budget-summary.html](../requirements/f2-income-alloc
 
 | ID | Rule | Enforcement |
 |---|---|---|
-| F1-AC1 / BR-001 | A plan requires a selected year/month and positive income. | Validate before persistence. |
+| F1-AC1 / BR-001 / BR-016 | A plan requires a selected year/month and income of at least 11 VND so every jar budget is positive. | Validate before persistence using the allocator's minimum. |
 | F1-AC2 / F1-AC5 / BR-002 | Every plan has exactly the seven canonical jars. | Create from one backend-owned definition; ignore caller jar data. |
 | F1-AC2 / BR-004 | Rates are fixed and total 100%. | Validate the canonical definition and persisted aggregate. |
 | BR-005 / BR-006 | Backend calculates every budget as income x percentage / 100. | Never trust client-calculated amounts. |
@@ -138,7 +138,7 @@ Request body:
 { "year": 2026, "month": 9, "monthlyIncomeVnd": "30000000" }
 ```
 
-`year` is 1-9999; `month` is 1-12; `monthlyIncomeVnd` is required ASCII digits, parseable as positive signed 64-bit integer. Do not accept `jarType`, `percentage`, or `budgetVnd` from the client.
+`year` is 1-9999; `month` is 1-12; `monthlyIncomeVnd` is required ASCII digits, parseable as signed 64-bit integer and at least 11 VND. Do not accept `jarType`, `percentage`, or `budgetVnd` from the client.
 
 Success is `201 Created` with `BudgetPlanResponse` and `Location: /api/v1/budget-plans/{year}/{month}`. No rows are committed on failure.
 
@@ -196,7 +196,7 @@ Use this envelope for all expected errors:
   "code": "VALIDATION_ERROR",
   "message": "One or more fields are invalid.",
   "errors": [
-    { "field": "monthlyIncomeVnd", "code": "MUST_BE_POSITIVE", "message": "Monthly income must be greater than zero." }
+    { "field": "monthlyIncomeVnd", "code": "INSUFFICIENT_FOR_ALL_JARS", "message": "Monthly income must be at least 11 VND so every jar receives a budget." }
   ]
 }
 ```
@@ -205,7 +205,7 @@ Use this envelope for all expected errors:
 
 | HTTP | Code | Meaning |
 |---:|---|---|
-| 400 | `VALIDATION_ERROR` | Invalid year/month, missing or malformed income, or invalid persisted request shape |
+| 400 | `VALIDATION_ERROR` | Invalid year/month, missing or malformed income, income below 11 VND, or invalid persisted request shape |
 | 404 | `MONTHLY_PLAN_NOT_FOUND` | No plan exists for a valid period |
 | 409 | `MONTHLY_PLAN_ALREADY_EXISTS` | Unique year/month already exists, including a concurrent insert race |
 | 500 | `INTERNAL_ERROR` | Unexpected failure or persisted aggregate integrity failure |
@@ -221,7 +221,7 @@ The approved policy must use whole-VND amounts and make the total equal income e
 1. Calculate each exact product with an overflow-safe intermediate.
 2. Assign `floor(product / 100)` to each jar and retain the remainder.
 3. Distribute leftover VND units by descending remainder; ties use canonical jar order.
-4. Verify seven non-negative budgets and `SUM(budgets) == monthlyIncomeVnd` before persistence and response.
+4. Verify seven positive budgets and `SUM(budgets) == monthlyIncomeVnd` before persistence and response.
 
 This approved policy is shared by F1 creation and F2 read logic if budgets are not persisted. Distribute whole-VND remainder units by descending fractional remainder; ties follow canonical jar order.
 

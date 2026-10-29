@@ -4,6 +4,8 @@ namespace FamilyFinance.Api.Services;
 
 public static class BudgetAllocator
 {
+    public static long MinimumIncomeForPositiveBudgets { get; } = FindMinimumIncomeForPositiveBudgets();
+
     public static IReadOnlyList<(JarDefinition Jar, long BudgetVnd)> Allocate(long incomeVnd)
     {
         if (incomeVnd <= 0)
@@ -36,6 +38,19 @@ public static class BudgetAllocator
         }
 
         return allocations.Select(allocation => (allocation.Jar, allocation.BudgetVnd)).ToList();
+    }
+
+    private static long FindMinimumIncomeForPositiveBudgets()
+    {
+        for (long incomeVnd = 1; incomeVnd <= 100; incomeVnd++)
+        {
+            if (Allocate(incomeVnd).All(allocation => allocation.BudgetVnd > 0))
+            {
+                return incomeVnd;
+            }
+        }
+
+        throw new InvalidOperationException("The default jar catalog cannot allocate a positive budget to every jar.");
     }
 
     private sealed class Allocation(JarDefinition jar, int index, long budgetVnd, int remainder)

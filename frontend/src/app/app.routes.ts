@@ -3,13 +3,13 @@ import { Routes } from '@angular/router';
 import { MonthlyPlanPageComponent } from './features/monthly-planning/monthly-plan-page.component';
 import { MonthlyPlanningPageComponent } from './features/monthly-planning/monthly-planning-page.component';
 import { AddExpensePageComponent } from './features/expenses/add-expense-page.component';
-import { RoutePlaceholderPageComponent } from './route-placeholder-page.component';
+import { DashboardPageComponent } from './features/dashboard/dashboard-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'dashboard',
-    component: RoutePlaceholderPageComponent,
+    component: DashboardPageComponent,
     data: { pageTitle: 'Dashboard' }
   },
   {
