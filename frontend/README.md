@@ -1,59 +1,106 @@
-# FamilyFinance
+# Family Finance Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.24.
+The frontend is a standalone Angular application. It uses Angular 21, TypeScript,
+and Vitest.
 
-## Development server
+## Prerequisites
 
-To start a local development server, run:
+- Node.js 22 or later
+- npm 10.9.8 (the version pinned in `package.json`)
+- The Family Finance API running locally for data-driven pages
+- .NET 8 SDK only if you also need to run the API from this repository
 
-```bash
-ng serve
+Check your installed versions:
+
+```powershell
+node --version
+npm --version
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## API base URL
 
-## Code scaffolding
+The frontend API base URL is configured in
+[`src/environments/environment.ts`](./src/environments/environment.ts):
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```ts
+apiBaseUrl: 'https://localhost:54535'
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Set `apiBaseUrl` to the origin of the API you want to use. Do not append
+`/api/v1`; the frontend endpoint definitions add the API paths.
 
-```bash
-ng generate --help
+For local development, the API launch profile uses HTTPS on port `54535` and
+HTTP on port `54536`. The frontend is configured to use HTTPS. The backend's
+Development CORS policy must allow the frontend's origin; the default Angular
+development origin is `http://localhost:4200`. If you use another host or port,
+allow that exact origin in the backend CORS policy.
+
+The repository also contains `src/environments/environment.prod.ts`, which
+currently sets an empty API base URL for same-origin deployment. However,
+`angular.json` does not currently configure a file replacement for production.
+Do not assume a production build uses `environment.prod.ts`; configure and
+verify the production API URL and Angular environment replacement before
+deploying.
+
+## Install dependencies
+
+From the repository root:
+
+```powershell
+cd frontend
+npm ci
 ```
 
-## Building
+## Run the frontend
 
-To build the project run:
+From `frontend/`:
 
-```bash
-ng build
+```powershell
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Open [http://localhost:4200](http://localhost:4200). The development server
+reloads when source files change.
 
-## Running unit tests
+## Run the API locally
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+If the API is not already running, open a separate terminal at the repository
+root:
 
-```bash
-ng test
+```powershell
+cd backend\FamilyFinance.Api
+dotnet restore
+dotnet run
 ```
 
-## Running end-to-end tests
+The API applies pending database migrations at startup. Its default launch
+profile serves `https://localhost:54535` and `http://localhost:54536`, and
+Swagger is available at [https://localhost:54535/swagger](https://localhost:54535/swagger).
+If the browser reports an HTTPS certificate error, trust the local .NET
+development certificate:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```powershell
+dotnet dev-certs https --trust
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Test and build
 
-## Additional Resources
+Run the unit tests:
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```powershell
+npm test
+```
+
+Run tests with coverage:
+
+```powershell
+npm test -- --coverage --include="src/app/**/*.spec.ts"
+```
+
+Create a production build:
+
+```powershell
+npm run build
+```
+
+Build output is written to `dist/family-finance/`.
